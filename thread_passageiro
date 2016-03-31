@@ -1,0 +1,20 @@
+struct passageiro
+// flag esta_onibus
+
+
+
+
+main_passageiro(void)
+{
+	ponto_t src = (rand()%MAX_PONTOS)
+	ponto_t dst = (rand()%MAX_PONTOS);
+	while (src == dst) {
+		ponto_t src = (rand()%MAX_PONTOS)
+		ponto_t dst = (rand()%MAX_PONTOS);
+	}
+	
+	request_lugar_fila(); // acordar o ponto de onibus
+
+	while (nao tiver lugar no onibus)
+		sleep();
+}

@@ -1,0 +1,13 @@
+main_onibus(void)
+{
+	// colocando o onibus no ponto
+	ponto_t src = (rand()%MAX_PONTOS)
+	while (is_ocupado()) {
+		src = (rand()%MAX_PONTOS);
+	}
+
+	while (!todo_onibus_ponto)
+		sleep();
+
+	request_passageiro();  // acordar o ponto
+}

@@ -1,0 +1,14 @@
+// variavel global
+// todo_onibus_ponto			contador pra checar se todos os onibus estao em um ponto (regiao critica - PRECISA DE MUTEX)
+// todo_passageiro_ponto		contador pra checar se todos os passageiros estao em um ponto	
+
+
+main(void)
+{
+	cria_pontos();
+	cria_passageiros();
+	cria_onibus();
+
+	pthread_join(todoas as thread filhas);
+	return 0;
+}
