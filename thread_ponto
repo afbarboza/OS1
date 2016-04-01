@@ -5,6 +5,8 @@ struct ponto
 // fila_passageiros
 // fila_bloqueados
 // heap_do_role
+// porta_fechada
+// id do busao parado
 
 int is_ocupado()
 {
@@ -13,18 +15,29 @@ int is_ocupado()
 	return 0;
 }
 
+/*envia um passageiro ao onibus*/
 void give_passageiro()
 {
 	return primeiro_da_fila();
 }
 
+/*envia um onibus ao passageiro*/
+busao_t give_onibus()
+{
+	if (porta_fechada)
+		return NULL;
+	else
+		return id_do_busao_parado;
+}
 
-void do_embarque(passageiro_t p, onibus o, ponto p)
+int do_embarque(passageiro_t p, onibus o, ponto p)
 {
 	if (first_queue(p)) {
 		dequeue_fila_passageiros(p);
 		enter_busao(o, p);
+		return 1;
 	}
+	return 0;
 }
 
 main_ponto(void *id_pontobusao)
@@ -37,7 +50,7 @@ main_ponto(void *id_pontobusao)
 	cria_heap_role();
 
 	// barreira 1
-	while (!todo_passageiro_ponto){
+	while (!todo_passageiro_ponto) {
 		sleep();
 	}
 
@@ -46,21 +59,19 @@ main_ponto(void *id_pontobusao)
 		sleep();
 	}
 
-	/*condição de inicialização - ninguem vai precisar descer*/
-	while (!is_lotado) {
-		sobe_passageiros();
-
 	/*TODO: code here*/
 	while (tiver passageiros circulando) {
-		select_prox_ponto(); 
 
-		while (tiver passageiros que forem desembarcar)
-			do_desembarque();
-
-		while (!is_lotado) {
-			do_embarque();	
+		while (tiver passageiros que forem desembarcar) {
+			retirar_onibus_passageiros();
 		}
 
+		invocar_gerenciador_adormecidos();		// my_item = extract_from_queue();
 		
-	}	
+		while (!onibus_is_lotado) {
+			wait_var_cond();
+		}
+		
+		fechar_porta(); // impede passageiros de tentraem subir	
+	}
 }

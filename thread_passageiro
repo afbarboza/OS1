@@ -5,10 +5,9 @@ struct passageiro
 // origem - de onde ele sai
 // destino - onde ele chega
 // is-bloqueado - nao conseguiu entrar na fila
-// is-role
+// is-role- determina se ele esta no role da cidade
 // tempo_role
 // id_onibus_esta - indica qual onibus o passageiro estah embarcado
-
 
 void do_desembarque(passageiro_t pa, ponto p, onibus o)
 {
@@ -18,7 +17,7 @@ void do_desembarque(passageiro_t pa, ponto p, onibus o)
 		chegou = 1;
 		reitirar_busao(p, o);
 		//insere_heap_role(pa, p);
-		sleep(random);
+		sleep(random);			/*TODO: aqui a thread _ponto_ ira dormir. e _nao_ a thread passageiro*/
 		insere_fila_bloqueados();
 	}
 }
@@ -32,7 +31,27 @@ main_passageiro(void)
 		ponto_t dst = (rand()%MAX_PONTOS);
 	}
 	
-	request_lugar_fila(); // acordar o ponto de onibus
+	request_lugar_fila();
+	while (!first(fila_passageiros())) {
+		wait_var_cond()			// todos dormem enquanto nao forem os primeiros da fila
+	}
 
-	
+	/*NOTE: talvez inverter a ordem desse while com o do while anterior??*/
+	while (give_onibus() != NULL) {
+		wait_var_cond(); 		// todos dormem (inclusive o primeiro da fila) enquanto nao houver um onibus
+	}
+
+	while (!chegou)
+		wait_var_cond();
+
+	do_desembarque();
+
+	while (!do_embarque()) {
+		// do nothing();
+	}
+	wait_var_cond()				// dorme dentro do onibus ate chegar de volta a sua origem
+
+	while (!chegou)
+		wait_var_cond();
+	kill_passageiro();
 }
