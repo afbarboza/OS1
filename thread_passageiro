@@ -1,8 +1,27 @@
 struct passageiro
-// flag esta_onibus
+// flag esta_onibus -- indica se estah no onibus (inicializada em 0)
+// flag chegou -- indica se ja chegou no ponto -- (inicializada em 0)
+// id_passageiro - chave unica do passageiro
+// origem - de onde ele sai
+// destino - onde ele chega
+// is-bloqueado - nao conseguiu entrar na fila
+// is-role
+// tempo_role
+// id_onibus_esta - indica qual onibus o passageiro estah embarcado
 
 
-
+void do_desembarque(passageiro_t pa, ponto p, onibus o)
+{
+	if (origem == p && chegou == 1) {
+		kill_passageiro();
+	} else if (destino == p && chegou == 0) {
+		chegou = 1;
+		reitirar_busao(p, o);
+		//insere_heap_role(pa, p);
+		sleep(random);
+		insere_fila_bloqueados();
+	}
+}
 
 main_passageiro(void)
 {
@@ -15,6 +34,5 @@ main_passageiro(void)
 	
 	request_lugar_fila(); // acordar o ponto de onibus
 
-	while (nao tiver lugar no onibus)
-		sleep();
+	
 }

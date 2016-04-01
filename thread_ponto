@@ -1,9 +1,10 @@
 struct ponto
 // precisa flag pra checar se estah ocupado com onibus ou nao?
 // precisa de flag pra checar se tem passageiro ou nao
-//
-//
-//
+// id_ponto
+// fila_passageiros
+// fila_bloqueados
+// heap_do_role
 
 int is_ocupado()
 {
@@ -15,6 +16,15 @@ int is_ocupado()
 void give_passageiro()
 {
 	return primeiro_da_fila();
+}
+
+
+void do_embarque(passageiro_t p, onibus o, ponto p)
+{
+	if (first_queue(p)) {
+		dequeue_fila_passageiros(p);
+		enter_busao(o, p);
+	}
 }
 
 main_ponto(void *id_pontobusao)
@@ -36,5 +46,21 @@ main_ponto(void *id_pontobusao)
 		sleep();
 	}
 
+	/*condição de inicialização - ninguem vai precisar descer*/
+	while (!is_lotado) {
+		sobe_passageiros();
+
+	/*TODO: code here*/
+	while (tiver passageiros circulando) {
+		select_prox_ponto(); 
+
+		while (tiver passageiros que forem desembarcar)
+			do_desembarque();
+
+		while (!is_lotado) {
+			do_embarque();	
+		}
+
 		
+	}	
 }

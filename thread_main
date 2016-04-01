@@ -3,6 +3,17 @@
 // todo_passageiro_ponto		contador pra checar se todos os passageiros estao em um ponto	
 
 
+/**
+* pthread_t passageiros[numero_passageiros]
+* pthread_t onibus[numero_oninubs]
+* pthread_t ponto[numero_pontos]
+*
+* struct passageiros[numero_passageiros]
+* struct onibus[numero_onibus]
+* struct ponto[numero_pontos]
+* 
+*/
+
 main(void)
 {
 	cria_pontos();

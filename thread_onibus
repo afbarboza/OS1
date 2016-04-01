@@ -1,7 +1,53 @@
+struct busao
+// nro_assentos
+// id-onibus
+// id_ponto_parado (-1 se nao esta parado em nenhum ponto)
+// passageiro_t assentos[nro_assentos]
+// assento_disponivel - armazena a quantidade de assentos disponiveis
+
+int is_ocupado(id_ponto)
+{
+}
+
+
+int is_lotado(onibus o)
+{
+	return ((assento_disponivel == 0) ? 1 : 0);
+}
+
+
+void enter_busao(passageiro p, onibus o)
+{
+	if (is_lotado(o))
+		return;
+
+
+	int i;
+	for (i = 0; i < nro_assentos; i++) {
+		if (assentos[i] == NULL) {
+			assentos[i] = p;
+			assentos_disponivel--;
+			return;
+		}
+	}
+}
+
+retirar_busao(passageiro p, onibus o)
+{
+	int i;
+	for (i = 0; i < o->nro_assentos; i++) {
+		if (assenntos[i] == p) {
+			assentos[i] = NULL;
+			assentos_disponiveis++;
+			return;
+		}
+	}
+}
+
 main_onibus(void)
 {
 	// colocando o onibus no ponto
-	ponto_t src = (rand()%MAX_PONTOS)
+	ponto_t src = (rand()%MAX_PONTOS);
 	while (is_ocupado()) {
 		src = (rand()%MAX_PONTOS);
 	}
