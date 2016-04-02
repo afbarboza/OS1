@@ -1,24 +1,28 @@
 #ifndef LIST_H
 #define LIST_H
 
-struct element {
+#include <stdint.h>
+
+struct node {
 	void 		*item;
 	struct element 	*next;
 };
 
 struct list {
-	element	*head;
-	element	*tail;
+	struct node	*head;
+	struct node	*tail;
 };
 
-int list_add_tail(list *l, element *e);
+struct list *list_create();
 
-int list_del_tail(list *l);
+void list_destroy(struct list *l);
 
-int list_add_head(list *l, element *e);
+uint8_t list_add_tail(struct list *l, struct node *n);
 
-int list_del_head(list *l, element *e);
+struct node *list_del_tail(struct list *l);
 
-struct element *list_search(void *item);
+uint8_t list_add_head(list *l, element *e);
+
+struct node *list_del_head(struct list *l);
 
 #endif /*list.h*/
