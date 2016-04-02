@@ -38,9 +38,11 @@ struct bus {
 };
 
 /**
-*	init_passenger - the main function of the corresponding thread
+*	init_bus - the main function of the corresponding thread
+*
+*	@arg: the id of the thread bus.
 */
-void *init_passenger(void *arg);
+void *init_bus(void *arg);
 
 /**
 *	bus_create - allocates and initializes the struct bus
@@ -87,9 +89,7 @@ uint8_t full_bus(bus_t *_bus);
 void receive_passenger(bus_t *_bus, passenger_t *pass);
 
 /**
-*
-*	send_passenger: sends a passenger to the busstop which @bus is it.
-*	
+*	send_passenger: sends a passenger to the busstop which @bus is it.	
 */
 void send_passenger(bus_t *bus);
 

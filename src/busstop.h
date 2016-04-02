@@ -62,7 +62,7 @@ void *init_busstop(void *arg);
 busstop_t *create_busstop(pthread_t *bus_thread);
 
 /**
-*	non_free_stopbus - checks whether a given stopbus is busy
+*	empty_stopbus - checks whether a given stopbus is busy
 *			   with a bus or its free to receveive a
 *			   new bus
 *
@@ -143,4 +143,5 @@ passenger_t	release_passenger(void);
 *
 */
 busstop_t	*self_bus(pthread_t *bus_thread);
+
 #endif	/*stopbus.h*/
