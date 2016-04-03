@@ -3,9 +3,13 @@
 
 #include <stdint.h>
 
+#define	for_each_node(p, l)	\
+	for(p = l->head->next; p->next != l->tail; p = p->next)
+
 struct node {
 	void 		*item;
 	struct node 	*next;
+	struct node	*prev;
 };
 
 struct list {
@@ -17,12 +21,15 @@ struct	list *list_create(void);
 
 void	list_destroy(struct list *l);
 
-uint8_t list_add_tail(struct list *l, struct node *n);
+inline
+uint8_t list_empty(struct list *l);
 
-uint8_t list_add_head(struct list *l, struct node *n);
+uint8_t list_add_tail(struct list *l, void *item);
 
-struct 	node *list_del_tail(struct list *l);
+uint8_t list_add_head(struct list *l, void *item);
 
-struct 	node *list_del_head(struct list *l);
+void 	*list_del_tail(struct list *l);
+
+void	 *list_del_head(struct list *l);
 
 #endif /*list.h*/
