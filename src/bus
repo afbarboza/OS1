@@ -12,7 +12,7 @@
 #include "passenger.h"
 
 
-void *init_passenger(void *arg);
+void *init_bus(void *arg);
 bus_t bus_create(pthread_t *bus_thread);
 void bus_destroy(bus_t *_bus);
 uint8_t at_busstop(bus_t *_bus,int id_ponto);
