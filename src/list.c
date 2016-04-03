@@ -63,7 +63,7 @@ uint8_t list_add_tail(struct list *l, void *item)
 	struct node *prev_tail = NULL, *n = NULL;
 
 	if (!l || !item) {
-		fprintf(stderr, "list.c:52: null pointer passed as parameter.\n");
+		fprintf(stderr, "list.c:61: null pointer passed as parameter.\n");
 		return 0;
 	}
 
@@ -91,7 +91,7 @@ uint8_t list_add_head(struct list *l, void *item)
 {
 	struct node *next_head = NULL, *n = NULL;
 	if (!l || !item) {
-		fprintf(stderr, "list.c:66: null pointer passed as parameter.\n");
+		fprintf(stderr, "list.c:90: null pointer passed as parameter.\n");
 		return 0;
 	}
 
@@ -119,7 +119,7 @@ void *list_del_tail(struct list *l)
 {
 	struct node *tail_prev = NULL;
 	if (!l) {
-		fprintf(stderr, "list.c:80: null pointer passed as parameter.\n");
+		fprintf(stderr, "list.c:118: null pointer passed as parameter.\n");
 		return NULL;
 	}
 
@@ -145,7 +145,7 @@ void *list_del_head(struct list *l)
 	struct node *next_head = NULL;
 
 	if (!l) {
-		fprintf(stderr, "list.c:108: null pointer passed as parameter.\n");
+		fprintf(stderr, "list.c:143: null pointer passed as parameter.\n");
 		return NULL;
 	}
 	
