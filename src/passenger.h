@@ -8,51 +8,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <time.h>
-#include "busstop.h"
-#include "bus.h"
-
-typedef struct passenger passenger_t;
-
-/**
-* 	struct passengers - all the info about the citizens who are
-*		      circulating at the city.
-*
-*	@at_bus: pointer to bus that passenger is currently riding.
-*		(ENOATBUS if passenger is not at bus).
-*
-*	@blocked: flag indicating whether the passenger is 
-*		  sleeping at destiny.
-*	@at_dest: flag indicating whteher passenger already arrived
-*		  at the destiny.
-*	@id_passenger: the unique identifier of passenger
-*	@src:	  pointer to the source busstop.
-*	@dst:	  pointer to the destiny stopbus.
-*	@exec_passenger: pointer to the corresponding thread of execution
-*	@sleep_time: random time used to define the amount of sleeping
-*		     time.
-*	@in_src_busstop: the time of arrival at origin busstop.
-*	@in_src_bus:	 the time of departure time at origin busstop
-*	@out_dst_bus:	 the time of arrival at destiny travel.
-*	@out_src_bus:	 the time of departure time to the origin. 
-*			(i.e.: the start of coming back time)
-*	@out_src_bus:	the time of arrival at origin.
-*/
-
-struct passenger {
-	bus_t		*at_bus;
-	uint8_t		blocked;
-	uint8_t		at_dst;
-	uint32_t	id_passenger;
-	busstop_t	*src;
-	busstop_t	*dst;
-	pthread_t	*exec_passenger;
-	uint32_t	sleep_time;
-	clock_t		in_src_busstop;
-	clock_t		in_src_bus;
-	clock_t		in_dst_busstop;
-	clock_t		out_dst_bus;
-	clock_t		out_src_bus;
-}
+#include "defs.h"
 
 /**
 *	init_passenger - the main function of the thread passenger.

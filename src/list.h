@@ -5,7 +5,7 @@
 
 struct node {
 	void 		*item;
-	struct element 	*next;
+	struct node 	*next;
 };
 
 struct list {
@@ -13,16 +13,16 @@ struct list {
 	struct node	*tail;
 };
 
-struct list *list_create();
+struct	list *list_create(void);
 
-void list_destroy(struct list *l);
+void	list_destroy(struct list *l);
 
 uint8_t list_add_tail(struct list *l, struct node *n);
 
-struct node *list_del_tail(struct list *l);
+uint8_t list_add_head(struct list *l, struct node *n);
 
-uint8_t list_add_head(list *l, element *e);
+struct 	node *list_del_tail(struct list *l);
 
-struct node *list_del_head(struct list *l);
+struct 	node *list_del_head(struct list *l);
 
 #endif /*list.h*/

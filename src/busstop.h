@@ -6,41 +6,8 @@
 
 #include <stdint.h>
 #include <pthread.h>
-#include "passenger.h"
-#include "bus.h"
+#include "defs.h"
 #include "list.h"
-
-typedef struct busstop	busstop_t;
-
-/**
-*	struct busstop - stores all the busstop data.
-*
-*	@id_bustop: the unique id number of the bus.
-*	@busy_bus: 	pointer to the stopped bus
-*	@passenger:	the number of passengers at bus
-*			(ENOPASSENGER if there is no passenger)
-*	@port_status:	flag indicating whether the door of the
-*			busstop is cllosed.
-*			(ENODOOR if door is closed)
-*	@exec_busstop:	the current thread that corresponds to
-*			the struct busstop.
-*			(ie.: the thread who owns this struct)
-*	@ready_passengers: the waken up passengers who is available
-*			   to go.
-*	@blocked_passengers: the sleeping passengers who are
-*			     "travelling" in destiny. (i.e.: blocked)
-*
-*/
-
-struct busstop {
-	uint32_t	id_bustop;
-	bus_t		*critical_busy_bus;
-	uint32_t	passenger;
-	uint8_t		port_status;
-	pthread_t	*exec_busstop;
-	list		*critical_ready_passengers;
-	list		*critical_blocked_passengers;
-};
 
 /**
 *	init_stopbus - main function of thread stopbus
@@ -68,7 +35,7 @@ busstop_t *create_busstop(pthread_t *bus_thread);
 *
 *	@stop: the pointer to the stopbus to be checked.
 */
-inline uint8_t empty_busstop(bustop_t *stop);
+inline uint8_t empty_busstop(busstop_t *stop);
 
 /**
 *	busstop_destroy - destroys the given busstop and then  
