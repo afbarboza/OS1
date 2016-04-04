@@ -4,8 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <pthread.h>
 
-/*TODO: erase documentation from .c files*/
+/*
+TODO: erase documentation from .c files
+create global mutexes for empty_busstop
+*/
 
 /**
 *	init_stopbus - main function of thread stopbus
@@ -66,8 +71,7 @@ busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
 */
 inline uint8_t empty_busstop(busstop_t *stop)
 {
-	/*TODO: code here*/
-	return 0;
+	return (stop->critical_busy_bus == ENOSTOPBUS);
 }
 
 /**
@@ -90,8 +94,8 @@ void 	busstop_destroy(busstop_t *busstop)
 */
 bus_t	*acquire_bus(busstop_t *_busstop)
 {
-	/*TODO: code here*/
-	return NULL;
+	
+	return _busstop->critical_busy_bus;
 }
 
 /**
@@ -100,7 +104,7 @@ bus_t	*acquire_bus(busstop_t *_busstop)
 */
 void	do_departure(busstop_t *_busstop)
 {
-	/*TODO: code here*/
+	/*TODO: code here...*/
 }
 
 /**
@@ -108,9 +112,14 @@ void	do_departure(busstop_t *_busstop)
 *
 *	this function SHALL NOT be called from other files
 */
-static void 	list_ready_add(passenger_t *_passenger)
+static void 	list_ready_add(busstop_t *_stop, passenger_t *_passenger)
 {
-	/*TODO: code here*/
+	if (!_stop || !_passenger) {
+		fprintf(stderr, "busstop.c:113: null pointer passed as parameter.\n");
+		exit(1);
+	}
+
+	list_add_tail(_stop->critical_ready_passengers, _passenger);
 }
 
 /**
@@ -118,20 +127,28 @@ static void 	list_ready_add(passenger_t *_passenger)
 *
 *	this function SHALL NOT be called from other files
 */
-static void	list_blocked_add(passenger_t *_passenger)
+static void	list_blocked_add(busstop_t *_stop, passenger_t *_passenger)
 {
-	/*TODO: code here*/
+	if (!_stop || !_passenger) {
+		fprintf(stderr, "busstop.c:128: null pointer passed as parameter.\n");
+		exit(1);
+	}
+
+	list_add_tail(_stop->critical_blocked_passengers, _passenger);
 }
 
 /**
-*	list_ready_first - remove the first element of list_ready.
+*	list_ready_first - remove the first element of list_ready from @_stop
 *	
 *	return the removed element. SHALL NOT be called from other files
 */
-static	passenger_t *list_ready_first(void)
+static	passenger_t *list_ready_first(busstop_t *_stop)
 {
-	/*TODO: code here*/
-	return NULL;
+	if (!_stop) {
+		fprintf(stderr, "busstop.c:143: null pointer passed as parameter.\n");
+		exit(1);
+	}
+	return list_del_head(_stop->critical_ready_passengers);
 }
 
 /**
@@ -139,9 +156,13 @@ static	passenger_t *list_ready_first(void)
 *
 *	return the removed element. SHALL NOT be called from other files
 */
-static	passenger_t *list_blocked_first(void)
+static	passenger_t *list_blocked_first(busstop_t *_stop)
 {
-	return NULL;
+	if (!_stop) {
+		fprintf(stderr, "busstop.c:143: null pointer passed as parameter.\n");
+		exit(1);
+	}
+	return list_del_head(_stop->critical_blocked_passengers);
 }
 
 /**
@@ -172,6 +193,11 @@ passenger_t	*release_passenger(void)
 */
 busstop_t	*self_bus(pthread_t *bus_thread)
 {
+	if (!bus_thread) {
+		fprintf(stderr, "busstop.c:192: null pointer passed as parameter.\n");
+		exit(1);
+	}
+
 	return NULL;
 }
 

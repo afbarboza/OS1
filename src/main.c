@@ -1,16 +1,25 @@
 #include <stdio.h>
+#include <pthread.h>
 #include "list.h"
 #include "defs.h"
 #include "passenger.h"
 #include "busstop.h"
 #include "bus.h"
 
+#define traverse_list(tmp)\
+	while (tmp != NULL && tmp->item != NULL) {	\
+			int value = (int) tmp->item;	\
+			printf("%d\n", value);		\
+			tmp = tmp->next;		\
+	}
+
 int main(void)
 {
 
 	/*list tests*/
-
+	pthread_t th;
 	struct list *l = list_create();
+	busstop_t *bs = create_busstop(&th, 0);
 	if (l)
 		printf("list created.\n");
 
@@ -28,11 +37,15 @@ int main(void)
 	printf("all elements inserted.\n");
 
 	struct node *tmp = l->head->next;
-	while (tmp != NULL && tmp->item != NULL) {
-			int value = (int) tmp->item;
-			printf("%d\n", value);
-			tmp = tmp->next;
-	}
+	traverse_list(tmp);
+
+	list_del_head(l);
+	list_del_head(l);
+	list_del_tail(l);
+	list_del_tail(l);
+
+	tmp = l->head->next;
+	traverse_list(tmp);
 
 	list_destroy(l);
 	return 0;

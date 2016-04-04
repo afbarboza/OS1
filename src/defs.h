@@ -5,6 +5,11 @@
 #include <stdint.h>
 #include "list.h"
 
+#define	ENOSTOPBUS	NULL	/*no bus is stopped at that busstop*/
+#define	ENOPASSENGER	0	/*no passenger is at that bus or busstop*/
+#define	ENODOOR		1	/*the busstop door is closed*/
+
+
 typedef struct busstop		busstop_t;
 typedef struct bus 		bus_t;
 typedef	struct passenger	passenger_t;
