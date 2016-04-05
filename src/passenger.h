@@ -1,7 +1,6 @@
 #ifndef PASSENGER_H
 #define	PASSENGER_H
 
-#define ENOATBUS	NULL
 #define EATDESTINY	1
 #define	EATORIGIN	1
 
@@ -24,9 +23,10 @@ void *init_passenger(void *arg);
 *	@passenger_thread: the corresponding thread of to be created struct
 *
 *	returns a pointer to the created struct or NULL, if any error 
-*		occured.
+*	occured.
 */
-passenger_t *passenger_create(pthread_t *passenger_thread);
+passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenger);
+
 
 /**
 *
@@ -73,5 +73,6 @@ uint8_t at_destiny(passenger_t *pass, bus_t *bus);
 *	self_passenger-	gets the corresponding struct passenger of the
 *			current executing thread passenger
 */
-passenger_t self_passenger(pthread_t *passenger_thread);
+passenger_t *self_passenger(pthread_t *passenger_thread);
+
 #endif	/*passenger.h*/

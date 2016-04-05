@@ -9,9 +9,12 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "list.h"
 
+#define	ENOATBUS	NULL	/*passenger is not actually inside bus*/
 #define	ENOSTOPBUS	NULL	/*no bus is stopped at that busstop*/
 #define	ENOPASSENGER	0	/*no passenger is at that bus or busstop*/
 #define	ENODOOR		1	/*the busstop door is closed*/
@@ -103,11 +106,7 @@ struct bus {
 *
 *       @at_bus: pointer to bus that passenger is currently riding.
 *               (ENOATBUS if passenger is not at bus).
-*
-*       @blocked: flag indicating whether the passenger is 
-*                 sleeping at destiny.
-*       @at_dest: flag indicating whteher passenger already arrived
-*                 at the destiny.
+*	@status: state of thread passenger in the process
 *       @id_passenger: the unique identifier of passenger
 *       @src:     pointer to the source busstop.
 *       @dst:     pointer to the destiny stopbus.
@@ -124,18 +123,27 @@ struct bus {
 
 struct passenger {
         bus_t           *at_bus;
-        uint8_t         blocked;
-        uint8_t         at_dst;
+	uint8_t		status;
         uint32_t        id_passenger;
         busstop_t       *src;
         busstop_t       *dst;
         pthread_t       *exec_passenger;
         uint32_t        sleep_time;
-        clock_t         in_src_busstop;
-        clock_t         in_src_bus;
-        clock_t         in_dst_busstop;
-        clock_t         out_dst_bus;
-        clock_t         out_src_bus;
+        struct tm	*in_src_busstop;
+	struct tm       *in_src_bus;
+        struct tm       *in_dst_busstop;
+        struct tm       *out_dst_bus;
+        struct tm       *out_src_bus;
+};
+
+enum {
+	PASS_KILL = 0,
+	PASS_BLOCKED_SRC,
+	PASS_WAIT_SRC,
+	PASS_BUS_DST,
+	PASS_DST,
+	PASS_WAIT_DST,
+	PASS_BUS_SRC
 };
 
 #endif /*defs.h*/

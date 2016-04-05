@@ -33,9 +33,7 @@ int main(int argc, char *argv[])
 	p = atoi(argv[3]);
 	a = atoi(argv[4]);
 
-	pthread_t th;
-	bus_t *mybus = bus_create(&th, 0);
-	if (!mybus)
-		printf("deu caca");
+	pthread_t pt;
+	passenger_t *pass = passenger_create(&pt, 10);
 	return 0;
 }
