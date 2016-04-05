@@ -8,7 +8,7 @@ run:
 	./prog 5 2 40 4
 
 valgrind:
-	valgrind --leak-check=full ./prog 5 2 40 4
+	valgrind ./prog 5 2 40 4
 
 gdb:
 	gdb --silent ./prog

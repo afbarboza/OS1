@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	p = atoi(argv[3]);
 	a = atoi(argv[4]);
 
-	pthread_t pt;
-	passenger_t *pass = passenger_create(&pt, 10);
+	
+	thread_bus = (pthread_t *) malloc()
 	return 0;
 }

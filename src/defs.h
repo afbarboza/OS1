@@ -44,6 +44,12 @@ busstop_t 	*busstop_s;	/*array of global structures busstop*/
 passenger_t 	*passenger_s;	/*array of global strucutures passengers*/
 
 
+/**
+*	@s - number of busstop at application
+*	@c - number of cars(bus) at application
+*	@p - number of passengers
+*	@a - number of total seats per bus
+*/
 uint32_t s, c, p, a;
 
 /**
