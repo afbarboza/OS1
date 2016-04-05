@@ -25,10 +25,10 @@
 	fprintf(stderr, "%s: null pointer.\n", str);
 
 
-#define	CHECK_MEMORY(p,str)				\
-	if (!p)						\
+#define	CHECK_MEMORY(p,str)					\
+	if (!p)  {						\
 	fprintf(stderr, "%s: not enough memory.\n", str);	\
-	exit(1);
+	exit(1); }
 
 
 typedef struct busstop		busstop_t;
