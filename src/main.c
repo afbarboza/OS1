@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include "list.h"
 #include "defs.h"
@@ -13,40 +14,28 @@
 			tmp = tmp->next;		\
 	}
 
-int main(void)
+/**
+* @s: numero de ponto de onibus
+* @c: numero de onibus
+* @p: numero de passageiros
+* @a: numero de assentos
+*/
+int main(int argc, char *argv[])
 {
+	/*checando o numero de argumentos da main*/
+	if (argc != 5) {
+		fprintf(stderr, "main.c:16: invalid number of arguments.\n");
+		exit(1);
+	}
 
-	/*list tests*/
+	s = atoi(argv[1]);
+	c = atoi(argv[2]);
+	p = atoi(argv[3]);
+	a = atoi(argv[4]);
+
 	pthread_t th;
-	struct list *l = list_create();
-	busstop_t *bs = create_busstop(&th, 0);
-	if (l)
-		printf("list created.\n");
-
-
-	int i = 0;
-	for (i = 1; i < 10; i++) {
-		list_add_head(l, (void *) i);
-	}
-
-	for (i = 10; i < 20; i++) {
-		list_add_tail(l, (void *) i);
-	}
-
-
-	printf("all elements inserted.\n");
-
-	struct node *tmp = l->head->next;
-	traverse_list(tmp);
-
-	list_del_head(l);
-	list_del_head(l);
-	list_del_tail(l);
-	list_del_tail(l);
-
-	tmp = l->head->next;
-	traverse_list(tmp);
-
-	list_destroy(l);
+	bus_t *mybus = bus_create(&th, 0);
+	if (!mybus)
+		printf("deu caca");
 	return 0;
 }

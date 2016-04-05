@@ -24,7 +24,7 @@ void *init_busstop(void *arg)
 }
 
 /**
-*	create_busstop - allocates and initializes the struct  bustop
+*	create_busstop - allocates and initializes the struct  busstop
 *
 *	@bus_thread - the execution thread corresponding to the 
 *			    struct.
@@ -35,7 +35,10 @@ void *init_busstop(void *arg)
 */
 busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
 {
+	/*ponteiro de retorno*/
 	busstop_t *new_busstop = NULL;
+
+	/*verificacao de argumento*/
 	if (!bus_thread) {
 		fprintf(stderr, "busstop.c:31: null pointer passed as parameter.\n");
 		exit(1);
@@ -46,7 +49,10 @@ busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
 		return NULL;
 	}
 
+	/*alocando a estrutura de retorno*/
 	new_busstop = (busstop_t *) malloc(sizeof(busstop_t));
+
+	/**/
 	if (!new_busstop) {
 		fprintf(stderr, "busstop.c:34: not enough memory.\n");
 		exit(1);

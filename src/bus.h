@@ -7,6 +7,8 @@
 #define EFREESEAT	NULL
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <pthread.h>
 #include "defs.h"
 
@@ -26,8 +28,8 @@ void *init_bus(void *arg);
 *	occured.
 *
 */
+bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus);
 
-bus_t bus_create(pthread_t *bus_thread);
 
 /**
 *

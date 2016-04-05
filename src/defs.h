@@ -1,8 +1,15 @@
 #ifndef DEFS_H
 #define	DEFS_H
 
+/**
+*	defs.h - definicao de tipos e variaveis globais
+*		 necessarias a todos os *.h e *.c
+*
+*/
+
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "list.h"
 
 #define	ENOSTOPBUS	NULL	/*no bus is stopped at that busstop*/
@@ -10,9 +17,31 @@
 #define	ENODOOR		1	/*the busstop door is closed*/
 
 
+#define	CHECK_NULL(p, str)				\
+	if (!p)						\
+	fprintf(stderr, "%s: null pointer.\n", str);
+
+
+#define	CHECK_MEMORY(p,str)				\
+	if (!p)						\
+	fprintf(stderr, "%s: not enough memory.\n", str);	\
+	exit(1);
+
+
 typedef struct busstop		busstop_t;
 typedef struct bus 		bus_t;
 typedef	struct passenger	passenger_t;
+
+pthread_t *thread_bus;
+pthread_t *thread_busstop;
+pthread_t *thread_passengers;
+
+bus_t 		*bus_s;		/*array of global structures bus*/
+busstop_t 	*busstop_s;	/*array of global structures busstop*/
+passenger_t 	*passenger_s;	/*array of global strucutures passengers*/
+
+
+uint32_t s, c, p, a;
 
 /**
 *       struct busstop - stores all the busstop data.
@@ -64,7 +93,7 @@ struct bus {
         busstop_t       *critical_stopped;
         passenger_t     *critical_seats;
         uint32_t        critical_available_seats;
-        uint8_t         ready_to_go;
+        //uint8_t         ready_to_go;
         pthread_t       *exec_bus;
 };
 
