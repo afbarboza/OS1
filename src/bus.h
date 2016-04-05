@@ -55,17 +55,19 @@ uint8_t full_bus(bus_t *_bus);
 
 /**
 *
-*	receive_passenger - allocates one seat to the most recently 
-*			    @passenger entered at the @_bus.
-*
+*	receive_passenger - store @pas in a seat from @bus
 *	@_bus: the bus which will receive the new passenger.
 *	@pass: the entered passenger.
 */
 void receive_passenger(bus_t *_bus, passenger_t *pass);
 
 /**
-*	send_passenger: sends a passenger to the busstop which @bus is it.	
+*	send_passenger: free the seat on the @_bus that was occupied by @pass
+*	@_bus: the bus which he passenger is
+*	@pass: the passenger who left the bus
+* Antncao adicionar o parametro passender_t *pass no cabecalho
 */
-void send_passenger(bus_t *bus);
+void send_passenger(bus_t *_bus);
+
 
 #endif		/*bus.h*/
