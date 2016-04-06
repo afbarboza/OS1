@@ -14,6 +14,12 @@
 			tmp = tmp->next;		\
 	}
 
+extern uint32_t        global_bus_busstop;
+extern pthread_mutex_t lock_bus_busstop;
+
+extern uint32_t        nthreads_passengers;
+extern pthread_mutex_t lock_bus;
+
 /**
 * @s: numero de ponto de onibus
 * @c: numero de onibus
@@ -28,12 +34,53 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	int i = 0;
 	s = atoi(argv[1]);
 	c = atoi(argv[2]);
 	p = atoi(argv[3]);
 	a = atoi(argv[4]);
 
-	
-	thread_bus = (pthread_t *) malloc()
+	/*initializng mutex for global counter*/
+	pthread_mutex_init(&lock_bus_busstop, NULL);
+
+	/*allocating array of threads*/
+	thread_bus = (pthread_t *) malloc(c * sizeof(pthread_t));
+	thread_busstop = (pthread_t *) malloc(s * sizeof(pthread_t));
+	thread_passengers = (pthread_t *) malloc(p * sizeof(pthread_t));
+
+	/*allocating array of structs*/
+	bus_s = (bus_t **) malloc(c * sizeof(bus_t *));
+	busstop_s = (busstop_t **) malloc(s *sizeof(busstop_t *));
+	passenger_s = (passenger_t **) malloc(p * sizeof(passenger_t *));
+
+
+	/*creating the corresponding strucutres*/
+	for (i = 0; i < c; i++) {
+		bus_s[i] = bus_create(&(thread_bus[i]), i);
+	}
+
+	for (i = 0; i < s; i++) {
+		busstop_s[i] = create_busstop(&(thread_busstop[i]), i);
+	}
+
+	for (i = 0; i < p; i++) {
+		passenger_s[i] = passenger_create(&(thread_passengers[i]), i);
+	}
+
+	/*TODO: print passengers trace*/
+
+	/* main thread _must_ wait for children threads */
+	/*for (i = 0; i < p; i++) {
+		pthread_join(&(thread_passengers[i]), NULL);
+	}
+
+	for (i = 0; i < s; i++) {
+		pthread_join(&(thread_busstop[i]), NULL);
+	}
+
+	for (i = 0; i < c; i++) {
+		pthread_join(&(thread_bus[i]), NULL);
+	} */
+
 	return 0;
 }

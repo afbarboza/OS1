@@ -12,6 +12,12 @@ TODO: erase documentation from .c files
 create global mutexes for empty_busstop
 */
 
+extern uint32_t        global_bus_busstop;
+extern pthread_mutex_t lock_bus_busstop;
+
+extern uint32_t        nthreads_passengers;
+extern pthread_mutex_t lock_bus;
+
 /**
 *	init_stopbus - main function of thread stopbus
 *	
@@ -19,7 +25,12 @@ create global mutexes for empty_busstop
 */
 void *init_busstop(void *arg)
 {
-	/*TODO: code here*/
+	uint32_t tid = (uint32_t) arg;
+	if (tid < 0) {
+		fprintf(stderr, "passenger.c:20: negative value as parameter.\n");
+	}
+
+	
 	return NULL;
 }
 
@@ -33,13 +44,13 @@ void *init_busstop(void *arg)
 *	any error occured.
 *
 */
-busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
+busstop_t *create_busstop(pthread_t *busstop_thread, uint32_t _id_busstop)
 {
 	/*ponteiro de retorno*/
 	busstop_t *new_busstop = NULL;
 
 	/*verificacao de argumento*/
-	if (!bus_thread) {
+	if (!busstop_thread) {
 		fprintf(stderr, "busstop.c:31: null pointer passed as parameter.\n");
 		exit(1);
 	}
@@ -58,11 +69,12 @@ busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
 		exit(1);
 	}
 
+	pthread_mutex_init(&new_busstop->lock_busy_bus, NULL);
 	new_busstop->id_bustop = _id_busstop;
 	new_busstop->critical_busy_bus = ENOSTOPBUS;
 	new_busstop->passenger = ENOPASSENGER;
 	new_busstop->port_status = ENODOOR;
-	new_busstop->exec_busstop = bus_thread;
+	new_busstop->exec_busstop = busstop_thread;
 	new_busstop->critical_ready_passengers = list_create();
 	new_busstop->critical_blocked_passengers = list_create();
 	return new_busstop;
@@ -71,13 +83,26 @@ busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop)
 /**
 *	empty_stopbus - checks whether a given stopbus is busy
 *			   with a bus or its free to receveive a
-*			   new bus
+*			   new bus. if so
 *
 *	@stop: the pointer to the stopbus to be checked.
 */
-inline uint8_t empty_busstop(busstop_t *stop)
+inline uint8_t empty_busstop(busstop_t *stop, bus_t *_bus)
 {
-	return (stop->critical_busy_bus == ENOSTOPBUS);
+	int retval = 0;
+	CHECK_NULL(stop, "busstop.c:84: ");
+	CHECK_NULL(_bus, "busstop.c:84: ");
+
+	pthread_mutex_lock(&(stop->lock_busy_bus));
+	if (stop->critical_busy_bus == ENOSTOPBUS) {
+		stop->critical_busy_bus = _bus;
+		_bus->critical_stopped = stop;
+		retval = 0;	
+	} else {
+		retval = 1;
+	}
+	pthread_mutex_unlock(&(stop->lock_busy_bus));
+	return retval;
 }
 
 /**

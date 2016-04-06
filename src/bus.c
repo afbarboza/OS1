@@ -2,6 +2,11 @@
 #include "bus.h"
 #include <stdio.h>
 
+extern uint32_t        global_bus_busstop;
+extern pthread_mutex_t lock_bus_busstop;
+
+extern uint32_t        nthreads_passengers;
+extern pthread_mutex_t lock_bus;
 
 /**
 *	init_bus - the main function of the corresponding thread
@@ -28,6 +33,8 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 {
 	/*the new created bus to be returned*/
 	bus_t *new_bus = NULL;
+	/*id of initial busstop which @bus_thread will be*/
+	uint32_t random = 0;
 
 	/*checking for incorrect parameters*/
 	if (!bus_thread || _id_bus < 0) {
@@ -44,7 +51,8 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	new_bus->id_bus = _id_bus;
 	/*a argumento de entrada da main, nro de assentos*/
 	new_bus->n_seats = a;
-	new_bus->critical_stopped = ENOSTOPBUS;
+	//new_bus->critical_stopped = ENOSTOPBUS;
+	
 	new_bus->critical_available_seats = a;
 	new_bus->exec_bus = bus_thread;
 	new_bus->critical_seats = (passenger_t *) malloc(a * sizeof(passenger_t));
@@ -67,6 +75,7 @@ void bus_destroy(bus_t *_bus)
 */
 uint8_t at_busstop(bus_t *_bus)
 {
+	return 0;
 }
 
 /**

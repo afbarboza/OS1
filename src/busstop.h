@@ -23,16 +23,17 @@ void *init_busstop(void *arg);
 *	any error occured.
 *
 */
-busstop_t *create_busstop(pthread_t *bus_thread, uint32_t _id_busstop);
+busstop_t *create_busstop(pthread_t *busstop_thread, uint32_t _id_busstop);
 
 /**
 *	empty_stopbus - checks whether a given stopbus is busy
 *			   with a bus or its free to receveive a
-*			   new bus
+*			   new bus. if so, allocates the new bus
 *
 *	@stop: the pointer to the stopbus to be checked.
+*	@_bus: pointer to the bus that are trying to stop at @stop
 */
-inline uint8_t empty_busstop(busstop_t *stop);
+inline uint8_t empty_busstop(busstop_t *stop, bus_t *_bus);
 
 /**
 *	busstop_destroy - destroys the given busstop and then  

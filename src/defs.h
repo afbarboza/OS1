@@ -39,10 +39,21 @@ pthread_t *thread_bus;
 pthread_t *thread_busstop;
 pthread_t *thread_passengers;
 
-bus_t 		*bus_s;		/*array of global structures bus*/
-busstop_t 	*busstop_s;	/*array of global structures busstop*/
-passenger_t 	*passenger_s;	/*array of global strucutures passengers*/
+bus_t 		**bus_s;		/*array of global structures bus*/
+busstop_t 	**busstop_s;	/*array of global structures busstop*/
+passenger_t 	**passenger_s;	/*array of global strucutures passengers*/
 
+#ifndef GLOBAL_VARIABLES
+#define GLOBAL_VARIABLES
+/*guarantees that every bus has a busstop associated with it*/
+uint32_t	global_bus_busstop;
+pthread_mutex_t	lock_bus_busstop;
+
+uint32_t	nthreads_passengers;
+pthread_mutex_t	lock_bus;
+#endif
+
+/*lock variables*/
 
 /**
 *	@s - number of busstop at application
@@ -75,6 +86,7 @@ uint32_t s, c, p, a;
 struct busstop {
         uint32_t        id_bustop;
         bus_t           *critical_busy_bus;
+	pthread_mutex_t	lock_busy_bus;
         uint32_t        passenger;
         uint8_t         port_status;
         pthread_t       *exec_busstop;
@@ -87,7 +99,7 @@ struct busstop {
 *
 *       @n_seats: the number of available seats when the bus is empty.
 *       @id_bus:  the unique identifiqer of bus
-*       @busstop: pointer to which busstop the current bus is.
+*       @critical_stopped: pointer to which busstop the current bus is.
 *                 (or ENOSTOPBUS if not stopped at none of busstop)
 *       @seats:   pointer to the passengers who are riding at that bus.
 *       @available_seats: @n_seats minus the amount of riding pasengers
