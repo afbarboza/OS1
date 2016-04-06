@@ -24,34 +24,24 @@ void do_desembarque(passageiro_t pa, ponto p, onibus o)
 
 main_passageiro(void)
 {
-	ponto_t src = (rand()%MAX_PONTOS)
-	ponto_t dst = (rand()%MAX_PONTOS);
-	while (src == dst) {
-		ponto_t src = (rand()%MAX_PONTOS)
-		ponto_t dst = (rand()%MAX_PONTOS);
-	}
+	//dorme enquanto nao for colocado em um onibus pela thread ponto_onibus
 	
-	request_lugar_fila();
-	while (!first(fila_passageiros())) {
-		wait_var_cond()			// todos dormem enquanto nao forem os primeiros da fila
-	}
+	//enquanto nao tiver chegado no ponto de onibus destino	
+		// dorme enquanto o onibus nao estiver em um ponto
+		//verifica se chegou no ponto destino
+			//desce do onibus
+			//atualiza valor de chegou
+		
+	//dorme por tempo aleatório (da role no destino)
+	
+	//entra na fila para embarcar no onibus
+	
+	//dorme ate entrar no onibus
+	
+	//enquanto nao tiver chegado no ponto de onibus origem	
+		//dorme enquanto o onibus nao estiver em um ponto
+		//verifica se chegou no ponto origem
+			//desce do onibus
 
-	/*NOTE: talvez inverter a ordem desse while com o do while anterior??*/
-	while (give_onibus() != NULL) {
-		wait_var_cond(); 		// todos dormem (inclusive o primeiro da fila) enquanto nao houver um onibus
-	}
-
-	while (!chegou)
-		wait_var_cond();
-
-	do_desembarque();
-
-	while (!do_embarque()) {
-		// do nothing();
-	}
-	wait_var_cond()				// dorme dentro do onibus ate chegar de volta a sua origem
-
-	while (!chegou)
-		wait_var_cond();
-	kill_passageiro();
+	//destroi thread_passageiro
 }
