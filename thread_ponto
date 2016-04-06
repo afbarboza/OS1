@@ -42,36 +42,20 @@ int do_embarque(passageiro_t p, onibus o, ponto p)
 
 main_ponto(void *id_pontobusao)
 {
-	int *id_ponto = (int *) id_pontobusao;
-	cria_fila_embarque();
-
-	cria_heap_espera(); //armazenar os que tentaram entrar na fila mas nao copnseguiram
-
-	cria_heap_role();
-
-	// barreira 1
-	while (!todo_passageiro_ponto) {
-		sleep();
-	}
-
-	// barreira 2
-	while (!todo_onibus_ponto) {
-		sleep();
-	}
-
-	/*TODO: code here*/
 	while (tiver passageiros circulando) {
-
-		while (tiver passageiros que forem desembarcar) {
-			retirar_onibus_passageiros();
-		}
-
-		invocar_gerenciador_adormecidos();		// my_item = extract_from_queue();
 		
-		while (!onibus_is_lotado) {
-			wait_var_cond();
-		}
+		//se tiver onibus no ponto
 		
-		fechar_porta(); // impede passageiros de tentraem subir	
+			//abre a porta
+		
+			//a thread init_passageiros irá chamar a funcao que insere os passageiros no ponto_de _onibus(role)
+			//espera todos os passageiros descerem do onibus ou ficarem no onibus
+			
+			//chama funcao que manda passageiros para o onibus enquanto o onibus nao estiver lotado e existir pessoas no espera no ponto_onibus
+
+			//fecha porta do pont_de_onibus
+
+			//acorda o onibus
+		
 	}
 }
