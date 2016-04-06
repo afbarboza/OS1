@@ -89,7 +89,7 @@ static  passenger_t *list_blocked_first(busstop_t *_stop);
 *			    inserts at the end of the queue of passengers
 *	this function its also may be used for initializes the busstop queue
 */
-void	acquire_passenger(busstop_t *_busstop, passenger_t *pass);
+void	acquire_passenger(busstop_t *_busstop, passenger_t *pass, uint8_t status_flag);
 
 /**
 *	release_passenger - gives to the stopped bus the first available
@@ -98,7 +98,7 @@ void	acquire_passenger(busstop_t *_busstop, passenger_t *pass);
 *	returns the first available passenger or NULL if there is
 *	no avaible passengers.
 */
-passenger_t     *release_passenger(busstop_t *_busstop);
+passenger_t     *release_passenger(busstop_t *_busstop, uint8_t status_flag);
 
 /**
 *	self_bus - returns the corresponding struct of the

@@ -19,10 +19,34 @@ void *init_passenger(void *arg)
 	uint32_t id_pass = (uint32_t) arg;
 
 	while(passenger_s[id_pass]->status == PASS_BLOCKED_SRC) {
-		acquire_passenger(passenger_s[id_pass]->src, passenger_s[id_pass]);
+		acquire_passenger(passenger_s[id_pass]->src, 
+				  passenger_s[id_pass],
+				  PASS_BUS_DST);
 	}
 
+	/*now, the current thread is at bus, for sure
+	* it must sleep until reaches its destiny
+	*/
+	while (passenger_s[id_pass]->status == PASS_BUS_DST) {
+		pthread_cond_wait(&(passenger_s[id_pass]->slp_bus_dst), &lock_bus_dst);
+	}
 
+	/*now, the current thread is at destiny, for sure
+	* it must sleep for a random time
+	*/
+	passenger_s[id_pass]->status = PASS_DST;
+	sleep(passenger_s[id_pass]->sleep_time);
+
+	/*the travel was prety good.
+	but now its time to come back*/
+	passenger_s[id_pass]->status = PASS_WAIT_DST;
+	while (passenger_s[id_pass]->status == PASS_WAIT_DST) {
+		acquire_passenger(passenger_s[id_pass]->dst,
+				  passenger_s[id_pass],
+				 PASS_BUS_DST);
+	}
+
+	/*TODO: kill passenger*/
 	return NULL;
 }
 
@@ -68,7 +92,7 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 	/*selecting sleep time at destiny - randomly*/
 	srand(time(NULL));
 	new_pass->sleep_time = (uint32_t) (rand()%3);
-	/*pointer initialization*/
+	/*pointer initialization for time retrive*/
 	new_pass->in_src_busstop = NULL;
 	new_pass->in_src_bus = NULL;
 	new_pass->in_dst_busstop = NULL;
@@ -77,6 +101,9 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 	time_t rawtime;
 	time(&rawtime);
 	new_pass->in_src_busstop = localtime(&rawtime);
+	/*mutex and condvar creation - block goint to dst*/
+	pthread_mutex_init(&(new_pass->lock_bus_dst), NULL);
+	pthread_cond_init(&(new_pass->slp_bus_dst), NULL);
 	return new_pass;
 }
 

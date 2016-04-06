@@ -57,6 +57,7 @@ uint32_t	global_bus_busstop;
 pthread_mutex_t	lock_bus_busstop;
 
 uint32_t	nthreads_passengers;
+pthread_mutex_t	lock_global_passengers;
 pthread_mutex_t	lock_bus;
 #endif
 
@@ -150,6 +151,10 @@ struct bus {
 *       @out_src_bus:    the time of departure time to the origin. 
 *                       (i.e.: the start of coming back time)
 *       @out_src_bus:   the time of arrival at origin.
+*	@slp_bus_dst:	current thread sleep at bus in this condvar until
+*			reaches its destiny.
+*			(status == PASS_BUS_DST)
+*	@lock_bus_dst:	needed mutex for @slp_bus_dst
 */
 
 struct passenger {
@@ -165,6 +170,8 @@ struct passenger {
         struct tm       *in_dst_busstop;
         struct tm       *out_dst_bus;
         struct tm       *out_src_bus;
+	pthread_cond_t	slp_bus_dst;
+	pthread_mutex_t	lock_bus_dst;
 };
 
 enum {

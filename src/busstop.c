@@ -209,17 +209,19 @@ static	passenger_t *list_blocked_first(busstop_t *_stop)
 *			    inserts at the end of the queue of passengers
 *
 */
-void	acquire_passenger(busstop_t *_busstop, passenger_t *pass)
+void	acquire_passenger(busstop_t *_busstop, 
+			  passenger_t *pass, 
+			  uint8_t status_flag)
 {
 	CHECK_NULL(_busstop, "busstop.c:208 ");
 	CHECK_NULL(pass, "busstop.c:208 ");
 
-	/*CONDICAO DE CONCORRENCIA*/
+	/*race conditions*/
 	sem_wait(&(_busstop->list_full));
 	sem_wait(&(_busstop->lock_queue));
 	/*step 1: checks whether the list of ready is empty*/
 	list_add_tail(_busstop->critical_ready_passengers, pass);
-	pass->status = WAIT_SRC;
+	pass->status = status_flag;
 	sem_post(&(_busstop->lock_queue));
 }
 
@@ -230,14 +232,17 @@ void	acquire_passenger(busstop_t *_busstop, passenger_t *pass)
 *	returns the first available passenger or NULL if there is
 *	no avaible passengers.
 */
-passenger_t	*release_passenger(busstop_t *_busstop)
+passenger_t	*release_passenger(busstop_t *_busstop, uint8_t status_flag)
 {
 	passenger_t *retval = NULL;
 	CHECK_NULL(_busstop, "busstop.c:232 ");
 	sem_post(&(_busstop->list_full));
 	sem_wait(&(_busstop->lock_queue));
-	retval = list_del_head(_busstop->critical_ready_passengers);
-	sem_wait(&(_busstop->lock_queue));
+	/*while(1retval) handles with empty queues*/
+	while (!retval)
+		retval = list_del_head(_busstop->critical_ready_passengers);
+	retval->status = status_flag;
+	sem_post(&(_busstop->lock_queue));
 	return retval;
 }
 
