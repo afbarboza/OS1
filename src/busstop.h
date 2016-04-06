@@ -47,10 +47,20 @@ void 	busstop_destroy(busstop_t *busstop);
 *	acquire_bus - try to return the stopped bus at a given busstop
 *	
 *	@_busstop - the busstop pointing to the stopped bus.
-*
+*	@pass - the passenger ordering the bus
+*	@new_status - the new new status of @pass 
+*       NOTES:
+*               this function SHALL NOT BE USED excepet for passengers threads.
+*               this function only returns NULL if, and only if:
+*               a) the @pass is the first of the queue.
+*               b) there is a bus stoped there and
+*               c) the port status is PORT_UP
+*               OTHERWISE, this function must fails and return NULL
+*       return a ppointer to the bus stopped there, or NULL otherwise.
+
 *	return a ppointer to the bus stopped there, or NULL otherwise.
 */
-bus_t	*acquire_bus(busstop_t *_busstop);
+bus_t   *acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status);
 
 /**
 *	do_departure - departures the first available passenger.
@@ -111,5 +121,16 @@ passenger_t     *release_passenger(busstop_t *_busstop, uint8_t status_flag);
 *
 */
 busstop_t	*self_bus(pthread_t *bus_thread);
+
+
+
+ /**
+ *       has_bus - checks whether @stop busstop already
+ *       has a bus stopped.
+ *       returns 0, if no.
+ *               1, otherwise
+ */
+
+inline uint8_t has_bus(busstop_t *stop);
 
 #endif	/*stopbus.h*/

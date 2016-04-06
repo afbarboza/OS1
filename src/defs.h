@@ -33,6 +33,8 @@
 	exit(1); }
 
 
+#define	port_status()
+
 /*
 * the queue of busstop is _not_ infinite
 * the max size of the queue is 40 passengers, only
@@ -108,12 +110,15 @@ struct busstop {
 	pthread_mutex_t	lock_busy_bus;
         uint32_t        passenger;
         uint8_t         port_status;
+	pthread_mutex_t	lock_port;
+	pthread_cond_t	cond_door;
         pthread_t       *exec_busstop;
         struct list     *critical_ready_passengers;
 	uint32_t	critical_size_ready;
 	sem_t		lock_queue;		/*pseudo-mutex*/	
 	sem_t		list_full;		/*semaphore*/
         struct list     *critical_blocked_passengers;
+	bus_t		
 };
 
 /**
@@ -128,16 +133,20 @@ struct busstop {
 *       @ready_to_go: flag indicating whhether there is no departing or
 *                     arriving passengers to be done. (ERDYTOGO if so)
 *       @exec_bus: pointer to the current thread of bus which is being 
-*                  manipulated. 
+*                  manipulated.
+*	@lock_array_seats: lock the array of passengers on board. 
+*	@lock_counter_seats: lock the @critical_available_seats field
 */
 struct bus {
         uint32_t        n_seats;
         uint32_t        id_bus;
         busstop_t       *critical_stopped;
-        passenger_t     *critical_seats;
+        passenger_t     **critical_seats;
         uint32_t        critical_available_seats;
         //uint8_t         ready_to_go;
         pthread_t       *exec_bus;
+	pthread_mutex_t	lock_array_seats;
+	pthread_mutex_t	lock_counter_seats;
 };
 
 /**
@@ -147,6 +156,8 @@ struct bus {
 *       @at_bus: pointer to bus that passenger is currently riding.
 *               (ENOATBUS if passenger is not at bus).
 *	@status: state of thread passenger in the process
+*	@lock_pass_status: mutex for checking the machine state status of thred
+*	@cond_pass_status: condition variable for @lock_pass_status
 *       @id_passenger: the unique identifier of passenger
 *       @src:     pointer to the source busstop.
 *       @dst:     pointer to the destiny stopbus.
@@ -168,6 +179,8 @@ struct bus {
 struct passenger {
         bus_t           *at_bus;
 	uint8_t		status;
+	pthread_mutex_t	lock_pass_status;
+	pthread_cond_t	cond_pass_status;
         uint32_t        id_passenger;
         busstop_t       *src;
         busstop_t       *dst;
@@ -188,8 +201,15 @@ enum {
 	PASS_WAIT_SRC,
 	PASS_BUS_DST,
 	PASS_DST,
+	PASS_BLOCKED_DST,
 	PASS_WAIT_DST,
 	PASS_BUS_SRC
+};
+
+enum {
+	PORT_CLOSED = 0
+	PORT_DOWN,	/*passenger down from bus to busstop*/
+	PORT_UP,	/*passenger up from busstop to bus*/
 };
 
 #endif /*defs.h*/

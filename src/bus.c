@@ -48,6 +48,10 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 		exit(1);
 	}
 
+	/*initializes the lock of array of seats*/
+	pthread_mutex_init(&(new_bus->lock_array_seats), NULL);
+	/*initializes the lock of available seats*/
+	pthread_mutex_init(&(new_bus->lock_counter_seats));
 	new_bus->id_bus = _id_bus;
 	/*a argumento de entrada da main, nro de assentos*/
 	new_bus->n_seats = a;
@@ -55,7 +59,7 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	
 	new_bus->critical_available_seats = a;
 	new_bus->exec_bus = bus_thread;
-	new_bus->critical_seats = (passenger_t *) malloc(a * sizeof(passenger_t));
+	new_bus->critical_seats = (passenger_t **) malloc(a * sizeof(passenger_t *));
 	return new_bus;
 }
 
@@ -81,11 +85,19 @@ uint8_t at_busstop(bus_t *_bus)
 /**
 *	full_bus - checks wheter exists at least one available seat
 *		   
-*	returns 1, if the given bus is not full
-*		0, otherwise.
+*	returns 0, if the given bus is not full
+*		1, otherwise.
 */
 uint8_t full_bus(bus_t *_bus)
 {
+	int retval = 0;
+	pthread_mutex_lock(&(_bus->lock_counter_seats));
+	if (_bus->critical_available_seats == 0) {
+		retval = 1;
+	} else {
+		retval = 0;
+	}
+	pthread_mutex_unlock(&(_bus->lock_counter_seats));
 }
 
 /**
@@ -98,6 +110,24 @@ uint8_t full_bus(bus_t *_bus)
 */
 void receive_passenger(bus_t *_bus, passenger_t *pass)
 {
+	CHECK_NULL(_buss, "bus.c:99 ");
+	CHECK_NULL(pass, "bus.c:99");
+	uint32_t tmp = 0;
+
+	if (!full_bus(_bus)) {
+		pthread_mutex_lock(&(_bus->lock_seats));
+		for (tmp = 0; tmp < _buss->n_seats; tmp++) {
+			/*i am so tired, thanks God I found an available seat*/
+			if (_bus->critical_seats[i] == NULL) {
+				pthread_mutex_lock(&(_bus->lock_counter_seats));
+				_bus->critical_seats[i] = pass;
+				_bus->critical_available_seats--;
+				pthread_mutex_unlock(&(_bus->lock_counter_seats));
+				break;
+			}
+		}
+		pthread_mutex_unlock(&(_bus->lock_seats));
+	}
 }
 
 /**

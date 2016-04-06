@@ -26,15 +26,15 @@ extern pthread_mutex_t lock_bus;
 */
 void *init_busstop(void *arg)
 {
-	uint32_t tid = (uint32_t) arg;
-	if (tid < 0) {
+	uint32_t id_stop = (uint32_t) arg;
+	if (id_stop < 0) {
 		fprintf(stderr, "passenger.c:20: negative value as parameter.\n");
 	}
 
-	while ()
-
 	while (!end_of_process()) {
-		
+		while (has_bus(busstop_s[i])) {
+			busstop_s[i]->port_status = PORT_DOWN;
+		}
 	}
 
 	return NULL;
@@ -75,6 +75,8 @@ busstop_t *create_busstop(pthread_t *busstop_thread, uint32_t _id_busstop)
 		exit(1);
 	}
 
+	pthread_mutex_init(&(new_busstop->lock_port), NULL);
+	pthread_cond_init(&(new_busstop->cond_door), NULL);
 	pthread_mutex_init(&new_busstop->lock_busy_bus, NULL);
 	sem_init(&new_busstop->lock_counter_ready, 0, 1);
 	sem_init(&new_busstop->list_full, 0, MAX_READY_QUEUE);
@@ -113,6 +115,21 @@ inline uint8_t empty_busstop(busstop_t *stop, bus_t *_bus)
 	return retval;
 }
 
+inline uint8_t has_bus(busstop_t *stop)
+{
+	CHECK_NULL(stop, "busstop.c:117 ");
+	int retval = 0;
+	pthread_mutex_lock(&(stop->lock_busy_bus));
+	if (stop->critical_busy_bus == ENOSTOPBUS) {
+		retval = 0;
+	} else {
+		retval = 1;
+	}
+	pthread_mutex_unlock(&(stop->lock_busy_bus));
+	return retval;
+}
+
+
 /**
 *	busstop_destroy - destroys the given busstop and then  
 *			  exits the corresponding thread.
@@ -126,14 +143,42 @@ void 	busstop_destroy(busstop_t *busstop)
 
 /**
 *	acquire_bus - try to return the stopped bus at a given busstop
+*		      for a given @pass passenger.
 *	
 *	@_busstop - the busstop pointing to the stopped bus.
+*	@pass - the passenger asking for the bus.
 *
+*
+*	NOTES:
+*		this function SHALL NOT BE USED excepet for passengers threads.
+*		this function only returns NULL if, and only if:
+*		a) the @pass is the first of the queue.
+*		b) there is a bus stoped there and
+*		c) the port status is PORT_UP
+*		OTHERWISE, this function must fails and return NULL
 *	return a ppointer to the bus stopped there, or NULL otherwise.
 */
-bus_t	*acquire_bus(busstop_t *_busstop)
+bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 {
-	
+	CHECK_NULL(_busstop, "busstop.c:161");
+	CHECK_NULL(pass, "busstop.c:161");
+	passenger_t *first_ptr = NULL;
+	bus_t *retval = NULL;
+
+	if (!list_empty(_busstop->critical_ready_passengers))
+		first_ptr = _busstop->critical_ready_passengers->head->next;
+
+	if (first_ptr != pass || first_ptr == NULL)
+		return retval;
+
+	pthread_mutex_lock(&(_busstop->lock_port));
+	if (_busstop->port_status == PORT_UP) {
+		pass->status = new_status;
+		pthread_cond_signal(&(pass->cond_pass_status), 
+				    &(pass->lock_pass_status));
+		retval = _busstop->critical_busy_bus;
+	}
+	pthread_mutex_unlock(&(_busstop->lock_port));
 	return _busstop->critical_busy_bus;
 }
 
@@ -141,9 +186,10 @@ bus_t	*acquire_bus(busstop_t *_busstop)
 *	do_departure - departures the first available passenger.
 *		       i.e.: insert at stopped bus the next passenger
 */
-void	do_departure(busstop_t *_busstop)
+passenger_t	do_departure(busstop_t *_busstop)
 {
-	/*TODO: code here...*/
+	CHECK_NULL(_busstop, "busstop.c:161: ");
+	
 }
 
 /**
@@ -239,9 +285,14 @@ passenger_t	*release_passenger(busstop_t *_busstop, uint8_t status_flag)
 	sem_post(&(_busstop->list_full));
 	sem_wait(&(_busstop->lock_queue));
 	retval = list_del_head(_busstop->critical_ready_passengers);
-	retval->status = status_flag;
-	sem_post(&(_busstop->lock_queue));
-	return retval;
+	if (retval == NULL) {	/*the list may be null*/
+		sem_post(&(_busstop->lock_queue));
+		return NULL;
+	} else {
+		retval->status = status_flag;
+		sem_post(&(_busstop->lock_queue));
+		return retval;
+	}
 }
 
 /**

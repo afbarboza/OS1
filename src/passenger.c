@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "passenger.h"
+#include "busstop.h"
 
 #include <stdlib.h>
 
@@ -17,19 +18,34 @@ extern	pthread_mutex_t lock_bus;
 void *init_passenger(void *arg)
 {
 	uint32_t id_pass = (uint32_t) arg;
+	bus_t *src_to_dst = NULL, *dst_to_src = NULL;
 
+	/*passenger is entering the wait queue*/
 	while(passenger_s[id_pass]->status == PASS_BLOCKED_SRC) {
 		acquire_passenger(passenger_s[id_pass]->src, 
 				  passenger_s[id_pass],
-				  PASS_BUS_DST);
+				  PASS_WAIT_SRC);
 		sched_yield();
 	}
 
-	/*now, the current thread is at bus, for sure
-	* it must sleep until reaches its destiny
+	/*just waiting for my time to enter the bus*/
+	passenger_s[id_pass]->status = PASS_WAIT_SRC;
+	while (passenger_s[id_pass]->status == PASS_WAIT_SRC) {
+		pthread_cond_wait(&(passenger_s[id_pass]->cond_pass_status), 
+				  &(passenger_s[id_pass]->lock_pass_status));
+		src_to_dst = acquire_bus(passenger_s[id_pass]->src, 
+					 passenger_s[id_pass],
+					 PASS_BUS_DST);
+		sched_yield();
+	}
+
+	/*
+        *   now, the current thread is at bus, for sure
+	*  it must sleep until reaches its destiny
 	*/
 	while (passenger_s[id_pass]->status == PASS_BUS_DST) {
-		pthread_cond_wait(&(passenger_s[id_pass]->slp_bus_dst), &lock_bus_dst);
+		pthread_cond_wait(&(passenger_s[id_pass]->cond_pass_status), 
+				  &(passenger_s[id_pass]->lock_pass_status));
 		sched_yield();
 	}
 
@@ -39,16 +55,34 @@ void *init_passenger(void *arg)
 	passenger_s[id_pass]->status = PASS_DST;
 	sleep(passenger_s[id_pass]->sleep_time);
 
+
+	/***todo: write the rest of pass trip****/
+
 	/*the travel was pretty good.
-	but now its time to come back*/
-	passenger_s[id_pass]->status = PASS_WAIT_DST;
-	while (passenger_s[id_pass]->status == PASS_WAIT_DST) {
-		acquire_passenger(passenger_s[id_pass]->dst,
+	* but now its time to come back
+	* hell, wait... this queue is so damn big, i _must_ wait for an
+	* empty space for me :(
+	*/
+	passenger_s[id_pass]->status = PASS_BLOCKED_DST;
+	while(passenger_s[id_pass]->status == PASS_BLOCKED_DST) {
+		acquire_passenger(passenger_s[id_pass]->src, 
 				  passenger_s[id_pass],
-				 PASS_BUS_DST);
+				  PASS_WAIT_DST);
 		sched_yield();
 	}
 
+	/*hell, finally i got a place to be in taht queue*/
+	/*now, i am gonna take a nap until bus arrives*/
+	while (passenger_s[id_pass]->status == PASS_WAIT_DST) {
+		pthread_cond_wait(&(passenger_s[id_pass]->cond_pass_status), 
+				  &(passenger_s[id_pass]->lock_pass_status));
+		dst_to_src = acquire_bus(passenger_s[id_pass]->src, 
+					passenger_s[id_pass],
+					PASS_BUS_SRC);
+		sched_yield();
+	}
+
+	/*thanks god i finally cambe back home.*/
 	/*corresponding struct assumes the KILL status*/
 	passenger_s[id_pass]->status = PASS_KILL;
 
@@ -84,6 +118,9 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 	}
 	new_pass = (passenger_t *) malloc(sizeof(passenger_t));
 	CHECK_MEMORY(new_pass, "passenger.c:33: ");
+	/*initializng condition variables of passenger status*/
+	pthread_mutex_init(&(new_pass->lock_pass_status), NULL);
+	pthread_cond_init(&(new_pass->cond_pass_status), NULL);
 	/*initially, passenger is not at bus*/	
 	new_pass->at_bus = ENOATBUS;
 	/*setting initial status of passenger - blocked queue*/
