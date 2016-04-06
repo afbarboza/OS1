@@ -66,35 +66,17 @@ retirar_busao(passageiro p, onibus o)
 
 main_onibus(void)
 {
-	// colocando o onibus no ponto
-	ponto_t src = (rand()%MAX_PONTOS);
-	while (is_ocupado()) {
-		src = (rand()%MAX_PONTOS);
-	}
-
-	while (!todo_onibus_ponto)
-		sleep();
-
-
-	/*condição de inicialização - ninguem vai precisar descer*/
-	while (!is_lotado() && !empty(fila_ponto_onibus)) {
-		sobe_passageiros();
-
-	/*TODO: code here*/
+	
 	while (tiver passageiros circulando) {
-		sleep(random);
-
-		while (select_prox_ponto() == EBUSY);
-
-		pthread_cond_signal();				// acordar passageriros que estao dormindo no busao
-
-		while (tiver passageiros que forem desembarcar)
-			wait_var_cond();			// pthread_cond_wait(&cond_queue_full, &item_queue_cond_lock);
-
-		while (!is_lotado) {
-			reitrar_fila_passageiros();		// atualizar ois dois TADS fila do ponto		
-		}
-
 		
-	}	
+		//avanca para o proximo ponto ( esta funcao tem de ter acesso exclusivo as informacoes do ponto para saber se vai parar no ponto ou nao)
+		
+		//se parou
+			//dorme enquanto a porta do ponto_de_onibus nao estiver aberta
+			//acorda os passageiros
+			//dorme ate a porta do ponto_de_onibus ser fechada
+		
+	}
+	
+	//destroi thread onibus
 }
