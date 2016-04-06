@@ -22,6 +22,7 @@ void *init_passenger(void *arg)
 		acquire_passenger(passenger_s[id_pass]->src, 
 				  passenger_s[id_pass],
 				  PASS_BUS_DST);
+		sched_yield();
 	}
 
 	/*now, the current thread is at bus, for sure
@@ -29,24 +30,35 @@ void *init_passenger(void *arg)
 	*/
 	while (passenger_s[id_pass]->status == PASS_BUS_DST) {
 		pthread_cond_wait(&(passenger_s[id_pass]->slp_bus_dst), &lock_bus_dst);
+		sched_yield();
 	}
 
-	/*now, the current thread is at destiny, for sure
+	/* now, the current thread is at destiny, for sure
 	* it must sleep for a random time
 	*/
 	passenger_s[id_pass]->status = PASS_DST;
 	sleep(passenger_s[id_pass]->sleep_time);
 
-	/*the travel was prety good.
+	/*the travel was pretty good.
 	but now its time to come back*/
 	passenger_s[id_pass]->status = PASS_WAIT_DST;
 	while (passenger_s[id_pass]->status == PASS_WAIT_DST) {
 		acquire_passenger(passenger_s[id_pass]->dst,
 				  passenger_s[id_pass],
 				 PASS_BUS_DST);
+		sched_yield();
 	}
 
-	/*TODO: kill passenger*/
+	/*corresponding struct assumes the KILL status*/
+	passenger_s[id_pass]->status = PASS_KILL;
+
+	/*decrementing global counter of active passengers*/
+	pthread_mutex_lock(&lock_global_passengers);
+	nthreads_passengers--;
+	pthread_mutex_unlock(&lock_global_passengers);
+
+	/*thread exited*/
+	pthread_exit(NULL);
 	return NULL;
 }
 
@@ -172,5 +184,9 @@ passenger_t *self_passenger(pthread_t *passenger_thread)
 
 inline uint8_t	end_of_process(void)
 {
-	return (nthreads_passengers == 0);
+	uint8_t retval = 0;
+	pthread_mutex_lock(&lock_global_passengers);
+	retval = ((nthreads_passengers == 0) ? 1: 0);
+	pthread_mutex_unlock(&lock_global_passengers);
+	return retval;
 }

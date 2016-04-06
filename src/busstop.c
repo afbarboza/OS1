@@ -238,9 +238,7 @@ passenger_t	*release_passenger(busstop_t *_busstop, uint8_t status_flag)
 	CHECK_NULL(_busstop, "busstop.c:232 ");
 	sem_post(&(_busstop->list_full));
 	sem_wait(&(_busstop->lock_queue));
-	/*while(1retval) handles with empty queues*/
-	while (!retval)
-		retval = list_del_head(_busstop->critical_ready_passengers);
+	retval = list_del_head(_busstop->critical_ready_passengers);
 	retval->status = status_flag;
 	sem_post(&(_busstop->lock_queue));
 	return retval;

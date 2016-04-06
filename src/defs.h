@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <sched.h>
 #include <semaphore.h>
 #include "list.h"
 
@@ -56,8 +57,15 @@ passenger_t 	**passenger_s;	/*array of global strucutures passengers*/
 uint32_t	global_bus_busstop;
 pthread_mutex_t	lock_bus_busstop;
 
+/*
+ * global counter of _active_ passengers thread.
+ * if (nthreads_passengers == 0) the entire process must exit
+ */
+
 uint32_t	nthreads_passengers;
 pthread_mutex_t	lock_global_passengers;
+
+/*why this is here????*/
 pthread_mutex_t	lock_bus;
 #endif
 

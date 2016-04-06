@@ -85,9 +85,14 @@ static  passenger_t *list_ready_first(busstop_t *_stop);
 */
 static  passenger_t *list_blocked_first(busstop_t *_stop);
 /**
-*	acquire_passenger - gets the arrived passenger from the bus and
-*			    inserts at the end of the queue of passengers
+*	acquire_passenger - gets the arrived passenger @pass bus and
+*			    inserts at the end of the queue of passengers of @_busstop
 *	this function its also may be used for initializes the busstop queue
+*
+*	@_busstop - the busstop where passenger will wait at queue
+*	@pass - the passenger to be inserted at wait queue of busstop
+*	@status_flag - indiciates whether passenger will wait
+*			PASS_WAIT_SRC or PASS_WAIT_DST
 */
 void	acquire_passenger(busstop_t *_busstop, passenger_t *pass, uint8_t status_flag);
 

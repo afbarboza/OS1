@@ -43,6 +43,10 @@ int main(int argc, char *argv[])
 	/*initializng mutex for global counter*/
 	pthread_mutex_init(&lock_bus_busstop, NULL);
 
+	/*counter determining the end of program*/
+	nthreads_passengers = p;
+	pthread_mutex_init(&lock_global_passengers, NULL);
+
 	/*allocating array of threads*/
 	thread_bus = (pthread_t *) malloc(c * sizeof(pthread_t));
 	thread_busstop = (pthread_t *) malloc(s * sizeof(pthread_t));
@@ -66,7 +70,6 @@ int main(int argc, char *argv[])
 	for (i = 0; i < p; i++) {
 		passenger_s[i] = passenger_create(&(thread_passengers[i]), i);
 	}
-	nthreads_passengers = p;	/*counter determining the end of program*/
 
 	/*creating pthread busstop's*/
 	for (i = 0; i < s; i++) {
