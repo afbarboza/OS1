@@ -66,11 +66,25 @@ int main(int argc, char *argv[])
 	for (i = 0; i < p; i++) {
 		passenger_s[i] = passenger_create(&(thread_passengers[i]), i);
 	}
+	nthreads_passengers = p;	/*counter determining the end of program*/
+
+	/*creating pthread busstop's*/
+	for (i = 0; i < s; i++) {
+		pthread_create(&(thread_busstop[i]), NULL, init_busstop, (void *) i);
+	}
+
+	for (i = 0; i < c; i++) {
+		pthread_create(&(thread_bus[i]), NULL, init_bus, (void *) i);
+	}
+
+	for (i = 0; i < p; i++) {
+		pthread_create(&(thread_passengers[i]), NULL, init_passenger, (void *) i);
+	}
 
 	/*TODO: print passengers trace*/
 
 	/* main thread _must_ wait for children threads */
-	/*for (i = 0; i < p; i++) {
+	for (i = 0; i < p; i++) {
 		pthread_join(&(thread_passengers[i]), NULL);
 	}
 
@@ -80,7 +94,7 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < c; i++) {
 		pthread_join(&(thread_bus[i]), NULL);
-	} */
+	}
 
 	return 0;
 }

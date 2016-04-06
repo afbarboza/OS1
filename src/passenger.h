@@ -75,4 +75,12 @@ uint8_t at_destiny(passenger_t *pass, bus_t *bus);
 */
 passenger_t *self_passenger(pthread_t *passenger_thread);
 
+/**
+*	end_of_process - checks whether the process bus _must_ exit
+*			 (i.e.: all passengers already travled)
+*			 this is done by checkin the global variable
+*			 nthreads_passengers == 0
+*/
+inline uint8_t  end_of_process(void);
+
 #endif	/*passenger.h*/

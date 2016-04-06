@@ -16,6 +16,13 @@ extern	pthread_mutex_t lock_bus;
 */
 void *init_passenger(void *arg)
 {
+	uint32_t id_pass = (uint32_t) arg;
+
+	while(passenger_s[id_pass]->status == PASS_BLOCKED_SRC) {
+		acquire_passenger(passenger_s[id_pass]->src, passenger_s[id_pass]);
+	}
+
+
 	return NULL;
 }
 
@@ -55,7 +62,6 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 		pass_src = (uint32_t) (rand()%s);
 		pass_dst = (uint32_t) (rand()%s);
 	}
-	printf("%d %d...\n", pass_src, pass_dst);
 	new_pass->src = (busstop_s[pass_src]);
 	new_pass->dst = (busstop_s[pass_dst]);
 	new_pass->exec_passenger = passenger_thread;
@@ -135,4 +141,9 @@ passenger_t *self_passenger(pthread_t *passenger_thread)
 {
 	CHECK_NULL(passenger_thread, "passennger.c:129: ");
 	return NULL;
+}
+
+inline uint8_t	end_of_process(void)
+{
+	return (nthreads_passengers == 0);
 }

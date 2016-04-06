@@ -31,12 +31,7 @@ void *init_busstop(void *arg)
 		fprintf(stderr, "passenger.c:20: negative value as parameter.\n");
 	}
 
-	while ()
-
-	while (!end_of_process()) {
-		
-	}
-
+	while (!end)
 	return NULL;
 }
 
@@ -76,8 +71,6 @@ busstop_t *create_busstop(pthread_t *busstop_thread, uint32_t _id_busstop)
 	}
 
 	pthread_mutex_init(&new_busstop->lock_busy_bus, NULL);
-	sem_init(&new_busstop->lock_counter_ready, 0, 1);
-	sem_init(&new_busstop->list_full, 0, MAX_READY_QUEUE);
 	new_busstop->id_bustop = _id_busstop;
 	new_busstop->critical_busy_bus = ENOSTOPBUS;
 	new_busstop->passenger = ENOPASSENGER;
@@ -211,16 +204,6 @@ static	passenger_t *list_blocked_first(busstop_t *_stop)
 */
 void	acquire_passenger(busstop_t *_busstop, passenger_t *pass)
 {
-	CHECK_NULL(_busstop, "busstop.c:208 ");
-	CHECK_NULL(pass, "busstop.c:208 ");
-
-	/*CONDICAO DE CONCORRENCIA*/
-	sem_wait(&(_busstop->list_full));
-	sem_wait(&(_busstop->lock_queue));
-	/*step 1: checks whether the list of ready is empty*/
-	list_add_tail(_busstop->critical_ready_passengers, pass);
-	pass->status = WAIT_SRC;
-	sem_post(&(_busstop->lock_queue));
 }
 
 /**
@@ -230,15 +213,9 @@ void	acquire_passenger(busstop_t *_busstop, passenger_t *pass)
 *	returns the first available passenger or NULL if there is
 *	no avaible passengers.
 */
-passenger_t	*release_passenger(busstop_t *_busstop)
+passenger_t	*release_passenger(void)
 {
-	passenger_t *retval = NULL;
-	CHECK_NULL(_busstop, "busstop.c:232 ");
-	sem_post(&(_busstop->list_full));
-	sem_wait(&(_busstop->lock_queue));
-	retval = list_del_head(_busstop->critical_ready_passengers);
-	sem_wait(&(_busstop->lock_queue));
-	return retval;
+	return NULL;
 }
 
 /**

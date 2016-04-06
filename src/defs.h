@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <semaphore.h>
 #include "list.h"
 
 #define	ENOATBUS	NULL	/*passenger is not actually inside bus*/
@@ -30,6 +31,12 @@
 	fprintf(stderr, "%s: not enough memory.\n", str);	\
 	exit(1); }
 
+
+/*
+* the queue of busstop is _not_ infinite
+* the max size of the queue is 40 passengers, only
+*/
+#define	MAX_READY_QUEUE	40
 
 typedef struct busstop		busstop_t;
 typedef struct bus 		bus_t;
@@ -80,7 +87,10 @@ uint32_t s, c, p, a;
 *                          to go.
 *       @blocked_passengers: the sleeping passengers who are
 *                            "travelling" in destiny. (i.e.: blocked)
-*
+*	@critical_size_ready: count the size of elements in the ready queue
+*			      of busstop.
+*	@lock_counter_ready: mutex for counting the number of passangers.
+*	@list_full: semaphore for counting the number of passangers waiting:
 */
 
 struct busstop {
@@ -91,6 +101,9 @@ struct busstop {
         uint8_t         port_status;
         pthread_t       *exec_busstop;
         struct list     *critical_ready_passengers;
+	uint32_t	critical_size_ready;
+	sem_t		lock_queue;		/*pseudo-mutex*/	
+	sem_t		list_full;		/*semaphore*/
         struct list     *critical_blocked_passengers;
 };
 
