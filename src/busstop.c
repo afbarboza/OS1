@@ -231,4 +231,3 @@ busstop_t	*self_bus(pthread_t *bus_thread)
 
 	return NULL;
 }
-
