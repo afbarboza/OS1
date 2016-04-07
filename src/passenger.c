@@ -53,7 +53,7 @@ void *init_passenger(void *arg)
 	/* now, the current thread is at destiny, for sure
 	* it must sleep for a random time
 	*/
-	passenger_s[id_pass]->status = PASS_DST;
+	//passenger_s[id_pass]->status = PASS_DST;
 	sleep(passenger_s[id_pass]->sleep_time);
 
 
@@ -83,9 +83,16 @@ void *init_passenger(void *arg)
 		sched_yield();
 	}
 
+	while (passenger_s[id_pass]->status == PASS_BUS_SRC) {
+		pthread_cond_wait(&(passenger_s[id_pass]->cond_pass_status), 
+				  &(passenger_s[id_pass]->lock_pass_status));
+		sched_yield();
+	}
+
+
 	/*thanks god i finally cambe back home.*/
 	/*corresponding struct assumes the KILL status*/
-	passenger_s[id_pass]->status = PASS_KILL;
+	//passenger_s[id_pass]->status = PASS_KILL;
 
 	/*decrementing global counter of active passengers*/
 	pthread_mutex_lock(&lock_global_passengers);
@@ -169,9 +176,30 @@ void passenger_destroy(passenger_t *passenger)
 *
 *	do_arrival - takes the @pass passenger from the @_bus and then
 *		     inserts into the @stop busstop.
+*	_SHALL ONLY BE USED BY THREAD BUS_
 */
-void do_arrival(passenger_t *pass, busstop_t *stop, bus_t *_bus)
+uint8_t do_arrival(passenger_t *pass, busstop_t *stop, bus_t *_bus)
 {
+	CHECK_NULL(pass, "passenger.c:173");
+	CHECK_NULL(stop, "passenger.c:173");
+	CHECK_NULL(_bus, "passenger.c:173");
+
+	uint8_t is_src = at_origin(pass, _bus);
+	uint8_t is_dst = at_destiny(pass, _bus);
+
+	if (is_dst) {
+		acquire_passenger(stop, pass, PASS_DST);
+		pthread_cond_signal(&(pass->cond_pass_status));
+		return 1;
+	}
+
+	if (is_src) {
+		pass->status = PASS_KILL;
+		pthread_cond_signal(&(pass->cond_pass_status));
+		return 1;
+	}
+
+	return 0;
 }
 
 /**
@@ -187,7 +215,13 @@ void do_arrival(passenger_t *pass, busstop_t *stop, bus_t *_bus)
 */
 uint8_t at_origin(passenger_t *pass, bus_t *_bus)
 {
-	return 0;
+	CHECK_NULL(pass, "passenger.c:188: ");
+	CHECK_NULL(_bus, "passenger.c:188 ");
+
+	busstop_t *where_bus = _bus->critical_stopped;
+	busstop_t *where_pass = pass->src;
+
+	return (where_bus->id_bustop == where_pass->id_bustop && pass->status == PASS_BUS_SRC);
 }
 
 /**
@@ -205,7 +239,11 @@ uint8_t at_destiny(passenger_t *pass, bus_t *bus)
 {
 	CHECK_NULL(pass, "passenger.c:119: ");
 	CHECK_NULL(bus, "passenger.c:119: ");
-	return 0;
+
+	busstop_t *where_bus = _bus->critical_stopped;
+	busstop_t *where_pass = pass->dst;
+
+	return (where_bus->id_bustop == where_pass->id_bustop && pass->status == PASS_BUS_DST);
 }
 
 /**

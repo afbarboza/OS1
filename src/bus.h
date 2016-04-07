@@ -84,4 +84,9 @@ inline uint8_t associated_bus_busstop(void);
 */
 inline void down_bus_busstop(void);
 
+/**
+* everyone gets down
+*/
+void arrive(bus_t *_bus);
+
 #endif		/*bus.h*/

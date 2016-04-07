@@ -39,8 +39,10 @@ void passenger_destroy(passenger_t *passenger);
 *
 *	do_arrival - takes the @pass passenger from the @_bus and then
 *		     inserts into the @stop busstop.
+*	returns 1, if @pass has reached its src/dst
+*		0, otherwise
 */
-void do_arrival(passenger_t *pass, busstop_t *stop, bus_t *_bus);
+uint8_t do_arrival(passenger_t *pass, busstop_t *stop, bus_t *_bus);
 
 /**
 *	at_origin - checks whether the passenger already came back to

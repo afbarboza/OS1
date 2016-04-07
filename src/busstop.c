@@ -177,9 +177,11 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 		pthread_cond_signal(&(pass->cond_pass_status), 
 				    &(pass->lock_pass_status));
 		retval = _busstop->critical_busy_bus;
+	} else {
+		retval = NULL;
 	}
 	pthread_mutex_unlock(&(_busstop->lock_port));
-	return _busstop->critical_busy_bus;
+	return retval;
 }
 
 /**

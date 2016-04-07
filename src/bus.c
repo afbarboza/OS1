@@ -36,8 +36,19 @@ void *init_bus(void *arg)
 		passenger_t *new_pass = release_passenger(curr_busstop, PASS_BUS_DST);
 	}
 	
+	has_initial_busstop = 0;
 	while (!end_of_process()) {
-		random_busstop = (random_)
+		random_busstop++;
+		random_busstop = random_busstop % s;
+		while (!has_initial_busstop) {
+			has_initial_busstop = empty_busstop(busstop_s[random_busstop], curr_bus);
+			curr_busstop = busstop_s[random_busstop];
+		}
+		pthread_mutex_lock(&(curr_busstop->lock_port));
+		curr_busstop->port_status = PORT_DOWN;
+		arrive(curr_bus);
+		curr_busstop->port_status = PORT_UP;
+		pthread_mutex_unlock(&(curr_busstop->lock_port));
 	}
 	return NULL;
 }
@@ -185,4 +196,30 @@ inline void down_bus_busstop(void)
 	}
 	pthread_mutex_unlock(&lock_bus_busstop);
 	return retval;
+}
+
+void arrive(bus_t *_bus)
+{
+	CHECK_NULL(_bus, "bus.c:197: ");
+	busstop_t *ptr_stopped = NULL;
+	uint32_t i = 0, npassengers = 0;
+
+	ptr_stopped = bus->critical_stopped;
+	if (!ptr_stopped) {
+		return;
+	}
+	
+	npassengers = _bus->n_seats - _bus->critical_available_seats;
+	for (i = 0; i < npassengers; i++) {
+		passenger_t *p = bus->critical_seats[i];
+		if (p != NULL) {
+			uint8_t arrived = do_arrival(p, ptr_stopped, _bus);
+			if (arrived) {
+				pthread_mutex_lock(&(_bus->lock_array_seats));
+				bus->critical_seats[i] = NULL;
+				_bus->critical_available_seats++;
+				pthread_mutex_unlock(&(_bus->lock_array_seats));
+			}
+		}
+	}
 }
