@@ -18,8 +18,9 @@ extern pthread_mutex_t lock_bus;
 void *init_bus(void *arg)
 {
 	uint32_t bus_id = (uint32_t) arg;
-	uint8_t has_initial_busstop = 0;
+	uint8_t has_initial_busstop = 0, not_full_bus = 0;
 	uint32_t random_busstop = (random_value() % s);
+	passenger_t *receive_pass = NULL;	/*pass which willl be received*/
 	bus_t *curr_bus = bus_s[bus_id];
 	busstop_t curr_busstop = NULL;
 
@@ -44,11 +45,16 @@ void *init_bus(void *arg)
 			has_initial_busstop = empty_busstop(busstop_s[random_busstop], curr_bus);
 			curr_busstop = busstop_s[random_busstop];
 		}
+		sched_yield();
 		pthread_mutex_lock(&(curr_busstop->lock_port));
 		curr_busstop->port_status = PORT_DOWN;
 		arrive(curr_bus);
-		curr_busstop->port_status = PORT_UP;
 		pthread_mutex_unlock(&(curr_busstop->lock_port));
+		sched_yield();
+		curr_busstop->port_status = PORT_UP;
+		not_full_bus = full_buss(curr_bus);
+		/*must sleep while has passengers entering*/
+		while (!not_full_bus /**&& */)
 	}
 	return NULL;
 }
@@ -97,6 +103,9 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	new_bus->critical_available_seats = a;
 	new_bus->exec_bus = bus_thread;
 	new_bus->critical_seats = (passenger_t **) malloc(a * sizeof(passenger_t *));
+	/*counter and mutex for how many passengers will arrive at busstop*/
+	new_bus->passengers_down = 0;
+	pthread_mutex_init(&(new_bus->lock_passengers_down));
 	return new_bus;
 }
 
@@ -222,4 +231,60 @@ void arrive(bus_t *_bus)
 			}
 		}
 	}
+}
+
+uint32_t count_arrives(bus_t *_bus)
+{
+	CHECK_NULL(_bus, "bus.c:236: ");
+
+	uint32_t i = 0;
+	uint32_t npassengers = _bus->n_seats - _bus->critical_available_seats;
+	busstop_t *stop = _bus->critical_stopped;
+	passenger_t *tmp = NULL;
+
+	if (!stop) {
+		for (i = 0; _bus->n_seats; i++) {
+			tmp = _bus->critical_seats[i];
+			if (!tmp) {
+				busstop_t *src = tmp->src;
+				busstop_t *dst = tmp->dst;
+
+				if (stop == src) {
+					uint8_t _status = tmp->status;
+					if (_status == PASS_BUS_SRC)
+						up_arrives(_bus);
+				} else if (stop == dst) {
+					if (_status == PASS_BUS_DST);
+						up_arrives(_bus);
+				}
+			}
+		}
+		return 0;
+	}
+
+}
+
+/*bus->passengers_down++*/
+static inline void up_arrives(bus_t *b)
+{
+	pthread_mutex_lock(&(_b->lock_passengers_down));
+	b->passengers_down++;
+	pthread_mutex_unlock(&(_b->lock_passengers_down));
+	return;
+}
+
+/*bus->passengers_down--*/
+static inline void down_arrives(bus_t *b)
+{
+	pthread_mutex_lock(&(_b->lock_passengers_down));
+	b->passengers_down--;
+	pthread_mutex_unlock(&(_b->lock_passengers_down));
+}
+
+/*bus->passengers_down = 0*/
+static inline void zero_arrives
+{
+	pthread_mutex_lock(&(_b->lock_passengers_down));
+	b->passengers_down = 0;
+	pthread_mutex_unlock(&(_b->lock_passengers_down));
 }

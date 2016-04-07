@@ -57,7 +57,6 @@ void *init_passenger(void *arg)
 	sleep(passenger_s[id_pass]->sleep_time);
 
 
-	/***todo: write the rest of pass trip****/
 
 	/*the travel was pretty good.
 	* but now its time to come back

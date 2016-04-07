@@ -149,6 +149,8 @@ struct bus {
         pthread_t       *exec_bus;
 	pthread_mutex_t	lock_array_seats;
 	pthread_mutex_t	lock_counter_seats;
+	uint32_t	passengers_down;
+	pthread_mutex_t	lock_passengers_down;
 };
 
 /**
