@@ -15,6 +15,7 @@
 #include <sched.h>
 #include <semaphore.h>
 #include "list.h"
+#include "random.h"
 
 #define	ENOATBUS	NULL	/*passenger is not actually inside bus*/
 #define	ENOSTOPBUS	NULL	/*no bus is stopped at that busstop*/
@@ -66,6 +67,7 @@ pthread_mutex_t	lock_bus_busstop;
 
 uint32_t	nthreads_passengers;
 pthread_mutex_t	lock_global_passengers;
+
 
 /*why this is here????*/
 pthread_mutex_t	lock_bus;

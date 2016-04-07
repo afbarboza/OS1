@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "passenger.h"
 #include "busstop.h"
+#include "random.h"
 
 #include <stdlib.h>
 
@@ -131,16 +132,15 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 	new_pass->dst = NULL;
 	while (pass_src == pass_dst) {
 		printf("%d %d...\n", pass_src, pass_dst);
-		srand(time(NULL));
-		pass_src = (uint32_t) (rand()%s);
-		pass_dst = (uint32_t) (rand()%s);
+		pass_src = (uint32_t) (random_value() % s);
+		pass_dst = (uint32_t) (random_value() % s);
 	}
 	new_pass->src = (busstop_s[pass_src]);
 	new_pass->dst = (busstop_s[pass_dst]);
 	new_pass->exec_passenger = passenger_thread;
 	/*selecting sleep time at destiny - randomly*/
 	srand(time(NULL));
-	new_pass->sleep_time = (uint32_t) (rand()%3);
+	new_pass->sleep_time = (uint32_t) (random_value() % 3);
 	/*pointer initialization for time retrive*/
 	new_pass->in_src_busstop = NULL;
 	new_pass->in_src_bus = NULL;

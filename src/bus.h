@@ -70,4 +70,18 @@ void receive_passenger(bus_t *_bus, passenger_t *pass);
 void send_passenger(bus_t *_bus);
 
 
+/**
+* associated_bus_busstop: checks whether _every_ bus is, initiallly, 
+*			  associated with it a busstop.
+* return 1, if zero.
+* 	 0, otherwise
+*/
+inline uint8_t associated_bus_busstop(void);
+
+/**
+* down_bus_busstop - decrement the value of
+*			global counter global_bus_busstop.
+*/
+inline void down_bus_busstop(void);
+
 #endif		/*bus.h*/

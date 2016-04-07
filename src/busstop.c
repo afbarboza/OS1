@@ -107,9 +107,9 @@ inline uint8_t empty_busstop(busstop_t *stop, bus_t *_bus)
 	if (stop->critical_busy_bus == ENOSTOPBUS) {
 		stop->critical_busy_bus = _bus;
 		_bus->critical_stopped = stop;
-		retval = 0;	
-	} else {
 		retval = 1;
+	} else {
+		retval = 0;
 	}
 	pthread_mutex_unlock(&(stop->lock_busy_bus));
 	return retval;
@@ -121,9 +121,9 @@ inline uint8_t has_bus(busstop_t *stop)
 	int retval = 0;
 	pthread_mutex_lock(&(stop->lock_busy_bus));
 	if (stop->critical_busy_bus == ENOSTOPBUS) {
-		retval = 0;
-	} else {
 		retval = 1;
+	} else {
+		retval = 0;
 	}
 	pthread_mutex_unlock(&(stop->lock_busy_bus));
 	return retval;
@@ -151,7 +151,7 @@ void 	busstop_destroy(busstop_t *busstop)
 *
 *	NOTES:
 *		this function SHALL NOT BE USED excepet for passengers threads.
-*		this function only returns NULL if, and only if:
+*		this function only returns NON NULL if, and only if:
 *		a) the @pass is the first of the queue.
 *		b) there is a bus stoped there and
 *		c) the port status is PORT_UP

@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 	a = atoi(argv[4]);
 
 	/*initializng mutex for global counter*/
+	global_bus_busstop = c;
 	pthread_mutex_init(&lock_bus_busstop, NULL);
 
 	/*counter determining the end of program*/

@@ -1,5 +1,7 @@
 #include "defs.h"
 #include "bus.h"
+#include "busstop.h"
+#include "passenger.h"
 #include <stdio.h>
 
 extern uint32_t        global_bus_busstop;
@@ -15,6 +17,28 @@ extern pthread_mutex_t lock_bus;
 */
 void *init_bus(void *arg)
 {
+	uint32_t bus_id = (uint32_t) arg;
+	uint8_t has_initial_busstop = 0;
+	uint32_t random_busstop = (random_value() % s);
+	bus_t *curr_bus = bus_s[bus_id];
+	busstop_t curr_busstop = NULL;
+
+	/*i am a happy driver trying to acquire a free busstop, to start*/
+	while (!has_initial_busstop) {
+		has_initial_busstop = empty_busstop(busstop_s[random_busstop], curr_bus);
+		curr_busstop = busstop_s[random_busstop];
+		random_busstop = (random_value() % s);
+	}
+	down_bus_busstop();
+
+	/*ok everbody, get in*/
+	while (!full_bus()) {
+		passenger_t *new_pass = release_passenger(curr_busstop, PASS_BUS_DST);
+	}
+	
+	while (!end_of_process()) {
+		random_busstop = (random_)
+	}
 	return NULL;
 }
 
@@ -33,6 +57,9 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 {
 	/*the new created bus to be returned*/
 	bus_t *new_bus = NULL;
+	/*used to check whether a busstop already has been allocated*/
+	bus_t *choosen_random = NULL;
+	uint32_t 
 	/*id of initial busstop which @bus_thread will be*/
 	uint32_t random = 0;
 
@@ -55,8 +82,7 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	new_bus->id_bus = _id_bus;
 	/*a argumento de entrada da main, nro de assentos*/
 	new_bus->n_seats = a;
-	//new_bus->critical_stopped = ENOSTOPBUS;
-	
+	new_bus->critical_stopped = ENOSTOPBUS;
 	new_bus->critical_available_seats = a;
 	new_bus->exec_bus = bus_thread;
 	new_bus->critical_seats = (passenger_t **) malloc(a * sizeof(passenger_t *));
@@ -137,3 +163,26 @@ void send_passenger(bus_t *bus)
 {
 }
 
+inline uint8_t associated_bus_busstop(void)
+{
+	uint8_t retval = 0;
+	pthread_mutex_lock(&lock_bus_busstop);
+	if (global_bus_busstop == 0) {
+		retval = 1;
+	} else {
+		retval = 0;
+	}
+	pthread_mutex_unlock(&lock_bus_busstop);
+	return retval;
+}
+
+
+inline void down_bus_busstop(void)
+{
+	pthread_mutex_lock(&lock_bus_busstop);
+	if (global_bus_busstop != 0) {
+		global_bus_busstop--;
+	}
+	pthread_mutex_unlock(&lock_bus_busstop);
+	return retval;
+}
