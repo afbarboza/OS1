@@ -1,15 +1,18 @@
 #include "defs.h"
 #include "passenger.h"
 #include "busstop.h"
-#include "random.h"
 
 #include <stdlib.h>
 
-extern	uint32_t        global_bus_busstop;
-extern	pthread_mutex_t lock_bus_busstop;
 
-extern	uint32_t        nthreads_passengers;
-extern	pthread_mutex_t lock_bus;
+/*guarantees that every bus has a busstop associated with it*/
+extern  uint32_t       global_bus_busstop;
+extern  pthread_mutex_t lock_bus_busstop;
+
+extern  uint32_t        nthreads_passengers;
+extern  pthread_mutex_t lock_global_passengers;
+extern  pthread_cond_t  cond_global_passengers;
+
 
 /**
 *	init_passenger - the main function of the thread passenger.
@@ -137,7 +140,6 @@ passenger_t *passenger_create(pthread_t *passenger_thread, uint32_t _id_passenge
 	new_pass->src = NULL;
 	new_pass->dst = NULL;
 	while (pass_src == pass_dst) {
-		printf("%d %d...\n", pass_src, pass_dst);
 		pass_src = (uint32_t) (random_value() % s);
 		pass_dst = (uint32_t) (random_value() % s);
 	}
@@ -239,7 +241,7 @@ uint8_t at_destiny(passenger_t *pass, bus_t *bus)
 	CHECK_NULL(pass, "passenger.c:119: ");
 	CHECK_NULL(bus, "passenger.c:119: ");
 
-	busstop_t *where_bus = _bus->critical_stopped;
+	busstop_t *where_bus = bus->critical_stopped;
 	busstop_t *where_pass = pass->dst;
 
 	return (where_bus->id_bustop == where_pass->id_bustop && pass->status == PASS_BUS_DST);

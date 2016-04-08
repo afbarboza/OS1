@@ -14,11 +14,17 @@ TODO: erase documentation from .c files
 create global mutexes for empty_busstop
 */
 
-extern uint32_t        global_bus_busstop;
-extern pthread_mutex_t lock_bus_busstop;
 
-extern uint32_t        nthreads_passengers;
-extern pthread_mutex_t lock_bus;
+/*guarantees that every bus has a busstop associated with it*/
+extern	uint32_t       global_bus_busstop;
+extern	pthread_mutex_t lock_bus_busstop;
+
+extern	uint32_t        nthreads_passengers;
+extern	pthread_mutex_t lock_global_passengers;
+extern	pthread_cond_t  cond_global_passengers;
+
+extern	pthread_mutex_t lock_bus;
+
 
 /**
 *	init_stopbus - main function of thread stopbus
@@ -32,10 +38,8 @@ void *init_busstop(void *arg)
 		fprintf(stderr, "passenger.c:20: negative value as parameter.\n");
 	}
 
-	while (!end_of_process()) {
-		while (has_bus(busstop_s[i])) {
-			busstop_s[i]->port_status = PORT_DOWN;
-		}
+	while (nthreads_passengers != 0) {
+		pthread_cond_wait(&cond_global_passengers, &lock_global_passengers);
 	}
 
 	return NULL;
@@ -79,7 +83,7 @@ busstop_t *create_busstop(pthread_t *busstop_thread, uint32_t _id_busstop)
 	pthread_mutex_init(&(new_busstop->lock_port), NULL);
 	pthread_cond_init(&(new_busstop->cond_door), NULL);
 	pthread_mutex_init(&new_busstop->lock_busy_bus, NULL);
-	sem_init(&new_busstop->lock_counter_ready, 0, 1);
+	sem_init(&new_busstop->lock_queue, 0, 1);
 	sem_init(&new_busstop->list_full, 0, MAX_READY_QUEUE);
 	new_busstop->id_bustop = _id_busstop;
 	new_busstop->critical_busy_bus = ENOSTOPBUS;
@@ -168,7 +172,7 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 	bus_t *retval = NULL;
 
 	if (!list_empty(_busstop->critical_ready_passengers))
-		first_ptr = _busstop->critical_ready_passengers->head->next;
+		first_ptr = (passenger_t *) _busstop->critical_ready_passengers->head->next;
 
 	if (first_ptr != pass || first_ptr == NULL)
 		return retval;
@@ -176,8 +180,7 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 	pthread_mutex_lock(&(_busstop->lock_port));
 	if (_busstop->port_status == PORT_UP) {
 		pass->status = new_status;
-		pthread_cond_signal(&(pass->cond_pass_status), 
-				    &(pass->lock_pass_status));
+		pthread_cond_signal(&(pass->cond_pass_status));
 		retval = _busstop->critical_busy_bus;
 		if (retval) {
 			if (full_bus(retval))
@@ -194,10 +197,10 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 *	do_departure - departures the first available passenger.
 *		       i.e.: insert at stopped bus the next passenger
 */
-passenger_t	do_departure(busstop_t *_busstop)
+passenger_t *do_departure(busstop_t *_busstop)
 {
 	CHECK_NULL(_busstop, "busstop.c:161: ");
-	
+	return NULL;	
 }
 
 /**

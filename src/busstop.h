@@ -66,7 +66,7 @@ bus_t   *acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 *	do_departure - departures the first available passenger.
 *		       i.e.: insert at stopped bus the next passenger
 */
-void	do_departure(busstop_t *_busstop);
+passenger_t     *do_departure(busstop_t *_busstop);
 
 /**
 *	list_ready_add - adds a @_passenger to the list_ready of @_stop

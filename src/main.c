@@ -14,11 +14,12 @@
 			tmp = tmp->next;		\
 	}
 
-extern uint32_t        global_bus_busstop;
-extern pthread_mutex_t lock_bus_busstop;
+extern 	uint32_t        global_bus_busstop;
+extern 	pthread_mutex_t lock_bus_busstop;
+extern	pthread_mutex_t	lock_global_passengers;
+extern	pthread_cond_t  cond_global_passengers;
 
-extern uint32_t        nthreads_passengers;
-extern pthread_mutex_t lock_bus;
+extern	uint32_t        nthreads_passengers;
 
 /**
 * @s: numero de ponto de onibus
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
 	/*counter determining the end of program*/
 	nthreads_passengers = p;
 	pthread_mutex_init(&lock_global_passengers, NULL);
+	pthread_cond_init(&cond_global_passengers, NULL);
 
 	/*allocating array of threads*/
 	thread_bus = (pthread_t *) malloc(c * sizeof(pthread_t));
@@ -89,15 +91,15 @@ int main(int argc, char *argv[])
 
 	/* main thread _must_ wait for children threads */
 	for (i = 0; i < p; i++) {
-		pthread_join(&(thread_passengers[i]), NULL);
+		pthread_join(thread_passengers[i], NULL);
 	}
 
 	for (i = 0; i < s; i++) {
-		pthread_join(&(thread_busstop[i]), NULL);
+		pthread_join(thread_busstop[i], NULL);
 	}
 
 	for (i = 0; i < c; i++) {
-		pthread_join(&(thread_bus[i]), NULL);
+		pthread_join(thread_bus[i], NULL);
 	}
 
 	return 0;

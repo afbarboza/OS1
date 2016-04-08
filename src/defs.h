@@ -14,6 +14,7 @@
 #include <time.h>
 #include <sched.h>
 #include <semaphore.h>
+#include <unistd.h>
 #include "list.h"
 #include "random.h"
 
@@ -67,10 +68,9 @@ pthread_mutex_t	lock_bus_busstop;
 
 uint32_t	nthreads_passengers;
 pthread_mutex_t	lock_global_passengers;
+pthread_cond_t	cond_global_passengers;
 
 
-/*why this is here????*/
-pthread_mutex_t	lock_bus;
 #endif
 
 /*lock variables*/
@@ -212,9 +212,9 @@ enum {
 };
 
 enum {
-	PORT_CLOSED = 0
+	PORT_CLOSED = 0,/*the busstop door is closed*/
 	PORT_DOWN,	/*passenger down from bus to busstop*/
-	PORT_UP,	/*passenger up from busstop to bus*/
+	PORT_UP		/*passenger up from busstop to bus*/
 };
 
 #endif /*defs.h*/
