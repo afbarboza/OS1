@@ -2,6 +2,7 @@
 #include "list.h"
 #include "busstop.h"
 #include "passenger.h"
+#include "bus.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,6 +156,7 @@ void 	busstop_destroy(busstop_t *busstop)
 *		a) the @pass is the first of the queue.
 *		b) there is a bus stoped there and
 *		c) the port status is PORT_UP
+*		d) the stopped bus is not null
 *		OTHERWISE, this function must fails and return NULL
 *	return a ppointer to the bus stopped there, or NULL otherwise.
 */
@@ -177,6 +179,10 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 		pthread_cond_signal(&(pass->cond_pass_status), 
 				    &(pass->lock_pass_status));
 		retval = _busstop->critical_busy_bus;
+		if (retval) {
+			if (full_bus(retval))
+				retval = NULL;
+		}
 	} else {
 		retval = NULL;
 	}
@@ -310,4 +316,19 @@ busstop_t	*self_bus(pthread_t *bus_thread)
 	}
 
 	return NULL;
+}
+
+/**
+* checks whether a given busstop is empty
+* or it has pasengers waiting
+*/
+uint8_t has_passengers_wait(busstop_t *stop)
+{
+	uint8_t retval = 1;
+	CHECK_NULL(stop, "busstop.c:325");
+	sem_wait(&(stop->lock_queue));
+	if (list_empty(stop->critical_ready_passengers))
+		retval = 0;
+	sem_post(&(stop->lock_queue));
+	return retval;
 }

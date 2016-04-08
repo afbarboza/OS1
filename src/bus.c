@@ -18,11 +18,13 @@ extern pthread_mutex_t lock_bus;
 void *init_bus(void *arg)
 {
 	uint32_t bus_id = (uint32_t) arg;
-	uint8_t has_initial_busstop = 0, not_full_bus = 0;
+	uint8_t has_initial_busstop = 0, not_full_bus = 0, not_empty_queue = 0;
 	uint32_t random_busstop = (random_value() % s);
 	passenger_t *receive_pass = NULL;	/*pass which willl be received*/
 	bus_t *curr_bus = bus_s[bus_id];
 	busstop_t curr_busstop = NULL;
+
+	/*TODO: wait for passengers allocation of busstop*/
 
 	/*i am a happy driver trying to acquire a free busstop, to start*/
 	while (!has_initial_busstop) {
@@ -36,9 +38,11 @@ void *init_bus(void *arg)
 	while (!full_bus()) {
 		passenger_t *new_pass = release_passenger(curr_busstop, PASS_BUS_DST);
 	}
-	
+
+	/*thats gonna be a great day of work*/	
 	has_initial_busstop = 0;
 	while (!end_of_process()) {
+		/*where am i gonna stop?*/
 		random_busstop++;
 		random_busstop = random_busstop % s;
 		while (!has_initial_busstop) {
@@ -46,16 +50,26 @@ void *init_bus(void *arg)
 			curr_busstop = busstop_s[random_busstop];
 		}
 		sched_yield();
+		/*ok, finally I found a free busstop*/
 		pthread_mutex_lock(&(curr_busstop->lock_port));
+		/*everbody which will down -> goes down right now*/
 		curr_busstop->port_status = PORT_DOWN;
 		arrive(curr_bus);
+		/*anybody there, wants a ride?*/
+		curr_busstop->port_status = PORT_UP;
 		pthread_mutex_unlock(&(curr_busstop->lock_port));
 		sched_yield();
-		curr_busstop->port_status = PORT_UP;
-		not_full_bus = full_buss(curr_bus);
-		/*must sleep while has passengers entering*/
-		while (!not_full_bus /**&& */)
+		/*everbody come in!*/
+		not_full_bus = !(full_buss(curr_bus));
+		not_empty_queue = has_passengers_wait(curr_busstop);
+		while (not_full_bus && not_empty_queue) {
+			not_full_bus = !(full_buss(curr_bus));
+			not_empty_queue = has_passengers_wait(curr_busstop);
+		}
+		/*time for drive*/
+		
 	}
+	pthread_exit(NULL);
 	return NULL;
 }
 
@@ -105,7 +119,8 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	new_bus->critical_seats = (passenger_t **) malloc(a * sizeof(passenger_t *));
 	/*counter and mutex for how many passengers will arrive at busstop*/
 	new_bus->passengers_down = 0;
-	pthread_mutex_init(&(new_bus->lock_passengers_down));
+	pthread_mutex_init(&(new_bus->lock_passengers_down), NULL);
+	pthread_cond_init(&(new_bus->cond_passengers_down), NULL);
 	return new_bus;
 }
 
@@ -218,7 +233,7 @@ void arrive(bus_t *_bus)
 		return;
 	}
 	
-	npassengers = _bus->n_seats - _bus->critical_available_seats;
+	npassengers = _bus->n_seats;
 	for (i = 0; i < npassengers; i++) {
 		passenger_t *p = bus->critical_seats[i];
 		if (p != NULL) {
@@ -254,7 +269,7 @@ uint32_t count_arrives(bus_t *_bus)
 					if (_status == PASS_BUS_SRC)
 						up_arrives(_bus);
 				} else if (stop == dst) {
-					if (_status == PASS_BUS_DST);
+					if (_status == PASS_BUS_DST)
 						up_arrives(_bus);
 				}
 			}

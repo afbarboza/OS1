@@ -110,6 +110,7 @@ struct busstop {
         uint32_t        id_bustop;
         bus_t           *critical_busy_bus;
 	pthread_mutex_t	lock_busy_bus;
+	pthread_cond_t	cond_busy_bus;
         uint32_t        passenger;
         uint8_t         port_status;
 	pthread_mutex_t	lock_port;
@@ -119,8 +120,7 @@ struct busstop {
 	uint32_t	critical_size_ready;
 	sem_t		lock_queue;		/*pseudo-mutex*/	
 	sem_t		list_full;		/*semaphore*/
-        struct list     *critical_blocked_passengers;
-	bus_t		
+        struct list     *critical_blocked_passengers;	
 };
 
 /**
@@ -151,6 +151,7 @@ struct bus {
 	pthread_mutex_t	lock_counter_seats;
 	uint32_t	passengers_down;
 	pthread_mutex_t	lock_passengers_down;
+	pthread_cond_t	cond_passengers_down;
 };
 
 /**

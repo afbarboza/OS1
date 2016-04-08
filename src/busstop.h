@@ -133,4 +133,11 @@ busstop_t	*self_bus(pthread_t *bus_thread);
 
 inline uint8_t has_bus(busstop_t *stop);
 
+/**
+* checks whether a busstop  @stop has passenger or its empty.
+* returns 1, if it has.
+*	  0, otherwise
+*/
+uint8_t has_passengers_wait(busstop_t *stop);
+
 #endif	/*stopbus.h*/
