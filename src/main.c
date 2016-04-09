@@ -14,12 +14,16 @@
 			tmp = tmp->next;		\
 	}
 
-extern 	uint32_t        global_bus_busstop;
-extern 	pthread_mutex_t lock_bus_busstop;
-extern	pthread_mutex_t	lock_global_passengers;
-extern	pthread_cond_t  cond_global_passengers;
+extern  uint32_t       global_bus_busstop;
+extern  pthread_mutex_t lock_bus_busstop;
 
-extern	uint32_t        nthreads_passengers;
+extern  uint32_t        nthreads_passengers;
+extern  pthread_mutex_t lock_global_passengers;
+extern  pthread_cond_t  cond_global_passengers;
+
+uint32_t        passengers_has_busstop;
+pthread_mutex_t lock_passengers_busstop;
+pthread_cond_t  cond_passengers_busstop;
 
 /**
 * @s: numero de ponto de onibus
@@ -41,9 +45,15 @@ int main(int argc, char *argv[])
 	p = atoi(argv[3]);
 	a = atoi(argv[4]);
 
+	/*counting the number of passenger which already is at a busstop*/
+	passengers_has_busstop = p;
+	pthread_mutex_init(&lock_passengers_busstop, NULL);
+	pthread_cond_init(&cond_passengers_busstop, NULL);
+
 	/*initializng mutex for global counter*/
 	global_bus_busstop = c;
 	pthread_mutex_init(&lock_bus_busstop, NULL);
+	pthread_cond_init(&cond_bus_busstop, NULL);
 
 	/*counter determining the end of program*/
 	nthreads_passengers = p;
@@ -60,7 +70,6 @@ int main(int argc, char *argv[])
 	busstop_s = (busstop_t **) malloc(s *sizeof(busstop_t *));
 	passenger_s = (passenger_t **) malloc(p * sizeof(passenger_t *));
 
-
 	/*creating the corresponding strucutres*/
 	for (i = 0; i < c; i++) {
 		bus_s[i] = bus_create(&(thread_bus[i]), i);
@@ -73,6 +82,11 @@ int main(int argc, char *argv[])
 	for (i = 0; i < p; i++) {
 		passenger_s[i] = passenger_create(&(thread_passengers[i]), i);
 	}
+
+#ifdef	DEBUG
+	DEBUG_MSG("strucures and threads allocated.\n");
+#endif
+
 
 	/*creating pthread busstop's*/
 	for (i = 0; i < s; i++) {
@@ -88,7 +102,9 @@ int main(int argc, char *argv[])
 	}
 
 	/*TODO: print passengers trace*/
-
+#ifdef	DEBUG
+	DEBUG_MSG("waiting child's threads.\n");
+#endif
 	/* main thread _must_ wait for children threads */
 	for (i = 0; i < p; i++) {
 		pthread_join(thread_passengers[i], NULL);

@@ -13,6 +13,9 @@ valgrind:
 gdb:
 	gdb --silent ./prog
 
+debug:
+	gcc main.c busstop.c bus.c list.c passenger.c random.c -o prog -g -pthread -Wall -DDEBUG
+
 clear:
 	rm ./prog
 

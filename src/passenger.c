@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 
-
 /*guarantees that every bus has a busstop associated with it*/
 extern  uint32_t       global_bus_busstop;
 extern  pthread_mutex_t lock_bus_busstop;
@@ -13,6 +12,9 @@ extern  uint32_t        nthreads_passengers;
 extern  pthread_mutex_t lock_global_passengers;
 extern  pthread_cond_t  cond_global_passengers;
 
+extern	uint32_t        passengers_has_busstop;
+extern	pthread_mutex_t lock_passengers_busstop;
+extern	pthread_cond_t  cond_passengers_busstop;
 
 /**
 *	init_passenger - the main function of the thread passenger.
@@ -23,14 +25,34 @@ void *init_passenger(void *arg)
 {
 	uint32_t id_pass = (uint32_t) arg;
 	bus_t *src_to_dst = NULL, *dst_to_src = NULL;
+	sched_yield();
 
-	/*passenger is entering the wait queue*/
+	/* barrier 1: passenger is entering the wait queue*/
 	while(passenger_s[id_pass]->status == PASS_BLOCKED_SRC) {
 		acquire_passenger(passenger_s[id_pass]->src, 
 				  passenger_s[id_pass],
 				  PASS_WAIT_SRC);
 		sched_yield();
 	}
+	down_passengers_bus();
+	#ifdef	DEBUG
+		fprintf(stderr, "thread passenger[%d] created.\n", id_pass);
+	#endif
+	sched_yield();
+
+	while (passengers_has_busstop != 0) {
+		pthread_cond_wait(&cond_passengers_busstop, &lock_passengers_busstop);
+		sched_yield();
+        }
+
+        /*barrier 2: wait for _all_ bus to be at a busstop*/
+	while (global_bus_busstop != 0) {
+                pthread_cond_wait(&(cond_bus_busstop), &lock_bus_busstop);
+                sched_yield();
+        }
+	#ifdef	DEBUG
+		fprintf(stderr, "thread passenger[%d]: all bus has been allocated.\n", id_pass);
+	#endif
 
 	/*just waiting for my time to enter the bus*/
 	passenger_s[id_pass]->status = PASS_WAIT_SRC;
@@ -40,6 +62,9 @@ void *init_passenger(void *arg)
 		src_to_dst = acquire_bus(passenger_s[id_pass]->src, 
 					 passenger_s[id_pass],
 					 PASS_BUS_DST);
+		if (src_to_dst) {
+			pthread_cond_signal(&(src_to_dst->cond_counter_seats));
+		}
 		sched_yield();
 	}
 
@@ -265,4 +290,19 @@ inline uint8_t	end_of_process(void)
 	retval = ((nthreads_passengers == 0) ? 1: 0);
 	pthread_mutex_unlock(&lock_global_passengers);
 	return retval;
+}
+
+/**
+* decrements the number of passengers that
+* still does not have a busstop
+*/
+void down_passengers_bus(void)
+{
+	pthread_mutex_lock(&lock_passengers_busstop);
+	if (passengers_has_busstop > 0)
+		passengers_has_busstop--;
+	pthread_mutex_unlock(&lock_passengers_busstop);
+	if (passengers_has_busstop == 0) {
+		pthread_cond_broadcast(&cond_passengers_busstop);
+	}
 }

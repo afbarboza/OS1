@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 /*guarantees that every bus has a busstop associated with it*/
+
+
 extern  uint32_t       global_bus_busstop;
 extern  pthread_mutex_t lock_bus_busstop;
 
@@ -13,15 +15,10 @@ extern  uint32_t        nthreads_passengers;
 extern  pthread_mutex_t lock_global_passengers;
 extern  pthread_cond_t  cond_global_passengers;
 
-extern  pthread_mutex_t lock_bus;
+extern  uint32_t        passengers_has_busstop;
+extern  pthread_mutex_t lock_passengers_busstop;
+extern  pthread_cond_t  cond_passengers_busstop;
 
-
-
-/**
-*	init_bus - the main function of the corresponding thread
-*
-*	@arg: the id of the thread bus.
-*/
 void *init_bus(void *arg)
 {
 	uint32_t bus_id = (uint32_t) arg;
@@ -30,32 +27,58 @@ void *init_bus(void *arg)
 	passenger_t *receive_pass = NULL;	/*pass which willl be received*/
 	bus_t *curr_bus = bus_s[bus_id];
 	busstop_t *curr_busstop = NULL;
+	sched_yield();
 
-	/*TODO: wait for passengers allocation of busstop*/
+	/*barrier 1: wait for _all_ passengers to be created*/
+	while (passengers_has_busstop != 0) {
+		pthread_cond_wait(&cond_passengers_busstop, &lock_passengers_busstop);
+		sched_yield();
+	}
+	#ifdef	DEBUG
+		fprintf(stderr, "thread bus[%d]: all passengers were created.\n", bus_id);
+	#endif
 
-	/*i am a happy driver trying to acquire a free busstop, to start*/
+	/*barrier 2: wait for _all_ bus to be at a busstop*/
 	while (!has_initial_busstop) {
 		has_initial_busstop = empty_busstop(busstop_s[random_busstop], curr_bus);
 		curr_busstop = busstop_s[random_busstop];
 		random_busstop = (random_value() % s);
+		#ifdef	DEBUG
+			fprintf(stderr, "selecting next busstop: %d\n", random_busstop);
+		#endif
+		sched_yield();
 	}
 	down_bus_busstop();
-
-	/*ok everbody, get in*/
-	while (!full_bus(curr_bus)) {
-		passenger_t *new_pass = release_passenger(curr_busstop, PASS_BUS_DST);
-		receive_passenger(curr_bus, new_pass);
+	sched_yield();
+	/*applying the same barrier to the same threads*/
+	while (global_bus_busstop != 0) {
+		pthread_cond_wait(&cond_bus_busstop, &lock_bus_busstop);
+		sched_yield();
 	}
+	#ifdef	DEBUG
+		fprintf(stderr, "thread bus[%d] has been allocated\n", bus_id);
+	#endif
+
+	/*ok everbody, get in. i'll take a nap while that happens*/
+	while (!full_bus(curr_bus)) {
+		//passenger_t *new_pass = release_passenger(curr_busstop, PASS_BUS_DST);
+		//receive_passenger(curr_bus, new_pass);
+		pthread_cond_wait(&(curr_bus->cond_counter_seats), 
+				  &(curr_bus->lock_counter_seats));
+		sched_yield();
+	}
+	sched_yield();
 
 	/*thats gonna be a great day of work*/	
 	has_initial_busstop = 0;
 	while (!end_of_process()) {
 		/*where am i gonna stop?*/
-		random_busstop++;
-		random_busstop = random_busstop % s;
 		while (!has_initial_busstop) {
 			has_initial_busstop = empty_busstop(busstop_s[random_busstop], curr_bus);
 			curr_busstop = busstop_s[random_busstop];
+			random_busstop++;
+			random_busstop = (random_busstop % s);
+			sched_yield();
 		}
 		sched_yield();
 		/*ok, finally I found a free busstop*/
@@ -75,8 +98,8 @@ void *init_bus(void *arg)
 			not_empty_queue = has_passengers_wait(curr_busstop);
 		}
 		/*time for drive*/
-		
-		
+		has_initial_busstop = 0;
+		sched_yield();
 	}
 	pthread_cond_signal(&cond_global_passengers);
 	pthread_exit(NULL);
@@ -119,6 +142,7 @@ bus_t *bus_create(pthread_t *bus_thread, uint32_t _id_bus)
 	pthread_mutex_init(&(new_bus->lock_array_seats), NULL);
 	/*initializes the lock of available seats*/
 	pthread_mutex_init(&(new_bus->lock_counter_seats), NULL);
+	pthread_cond_init(&(new_bus->cond_counter_seats), NULL);
 	new_bus->id_bus = _id_bus;
 	/*a argumento de entrada da main, nro de assentos*/
 	new_bus->n_seats = a;
@@ -229,6 +253,8 @@ inline void down_bus_busstop(void)
 		global_bus_busstop--;
 	}
 	pthread_mutex_unlock(&lock_bus_busstop);
+	if (global_bus_busstop == 0)
+		pthread_cond_broadcast(&cond_bus_busstop);
 }
 
 void arrive(bus_t *_bus)

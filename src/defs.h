@@ -35,7 +35,8 @@
 	exit(1); }
 
 
-#define	port_status()
+#define	DEBUG_MSG(str)	\
+	fprintf(stderr, "%s\n", str);
 
 /*
 * the queue of busstop is _not_ infinite
@@ -52,14 +53,16 @@ pthread_t *thread_busstop;
 pthread_t *thread_passengers;
 
 bus_t 		**bus_s;		/*array of global structures bus*/
-busstop_t 	**busstop_s;	/*array of global structures busstop*/
-passenger_t 	**passenger_s;	/*array of global strucutures passengers*/
+busstop_t 	**busstop_s;		/*array of global structures busstop*/
+passenger_t 	**passenger_s;		/*array of global strucutures passengers*/
 
 #ifndef GLOBAL_VARIABLES
 #define GLOBAL_VARIABLES
+
 /*guarantees that every bus has a busstop associated with it*/
 uint32_t	global_bus_busstop;
 pthread_mutex_t	lock_bus_busstop;
+pthread_cond_t	cond_bus_busstop;
 
 /*
  * global counter of _active_ passengers thread.
@@ -70,6 +73,14 @@ uint32_t	nthreads_passengers;
 pthread_mutex_t	lock_global_passengers;
 pthread_cond_t	cond_global_passengers;
 
+/*
+*	when a passenger is created
+*	it must down the value of passengers_has_busstop
+*	works as a barrier
+*/
+uint32_t	passengers_has_busstop;
+pthread_mutex_t	lock_passengers_busstop;
+pthread_cond_t	cond_passengers_busstop;
 
 #endif
 
@@ -149,6 +160,7 @@ struct bus {
         pthread_t       *exec_bus;
 	pthread_mutex_t	lock_array_seats;
 	pthread_mutex_t	lock_counter_seats;
+	pthread_cond_t	cond_counter_seats;
 	uint32_t	passengers_down;
 	pthread_mutex_t	lock_passengers_down;
 	pthread_cond_t	cond_passengers_down;

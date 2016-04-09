@@ -16,15 +16,16 @@ create global mutexes for empty_busstop
 
 
 /*guarantees that every bus has a busstop associated with it*/
-extern	uint32_t       global_bus_busstop;
-extern	pthread_mutex_t lock_bus_busstop;
+extern  uint32_t       global_bus_busstop;
+extern  pthread_mutex_t lock_bus_busstop;
 
-extern	uint32_t        nthreads_passengers;
-extern	pthread_mutex_t lock_global_passengers;
-extern	pthread_cond_t  cond_global_passengers;
+extern  uint32_t        nthreads_passengers;
+extern  pthread_mutex_t lock_global_passengers;
+extern  pthread_cond_t  cond_global_passengers;
 
-extern	pthread_mutex_t lock_bus;
-
+extern  uint32_t        passengers_has_busstop;
+extern  pthread_mutex_t lock_passengers_busstop;
+extern  pthread_cond_t  cond_passengers_busstop;
 
 /**
 *	init_stopbus - main function of thread stopbus
@@ -34,14 +35,33 @@ extern	pthread_mutex_t lock_bus;
 void *init_busstop(void *arg)
 {
 	uint32_t id_stop = (uint32_t) arg;
-	if (id_stop < 0) {
-		fprintf(stderr, "passenger.c:20: negative value as parameter.\n");
+	sched_yield();
+
+	/*barrier 1: wait for _all_ passengers to be created*/
+	while (passengers_has_busstop != 0) {
+                pthread_cond_wait(&cond_passengers_busstop, &lock_passengers_busstop);
+		sched_yield();
 	}
+        #ifdef  DEBUG
+                fprintf(stderr, "thread busstop[%d]: all passengers were created.\n", id_stop);
+        #endif
+
+        /*barrier 2: wait for _all_ bus to be at a busstop*/
+	while (global_bus_busstop != 0) {
+		pthread_cond_wait(&(cond_bus_busstop), &lock_bus_busstop);
+		sched_yield();
+	}
+	#ifdef	DEBUG
+		fprintf(stderr, "thread[%d]: all bus has been allocated.\n", id_stop);
+	#endif
 
 	while (nthreads_passengers != 0) {
 		pthread_cond_wait(&cond_global_passengers, &lock_global_passengers);
+		DEBUG_MSG("waiting the end");
+		sched_yield();
 	}
 
+	pthread_exit(NULL);
 	return NULL;
 }
 
@@ -171,21 +191,31 @@ bus_t	*acquire_bus(busstop_t *_busstop, passenger_t *pass, uint8_t new_status)
 	passenger_t *first_ptr = NULL;
 	bus_t *retval = NULL;
 
+	/*assertion: list cant be empty (wait queue)*/
 	if (!list_empty(_busstop->critical_ready_passengers))
 		first_ptr = (passenger_t *) _busstop->critical_ready_passengers->head->next;
 
+	/*assertion: must be the first of the list (wait queue)*/
 	if (first_ptr != pass || first_ptr == NULL)
 		return retval;
 
+	/*assertion: must be a bus stoppped*/
+	retval = _busstop->critical_busy_bus;
+	if (!retval) {
+		return NULL;
+	}
+
 	pthread_mutex_lock(&(_busstop->lock_port));
+	/*assertion: the passenger must be allowed to enter*/
 	if (_busstop->port_status == PORT_UP) {
-		pass->status = new_status;
-		pthread_cond_signal(&(pass->cond_pass_status));
-		retval = _busstop->critical_busy_bus;
-		if (retval) {
-			if (full_bus(retval))
-				retval = NULL;
+		/*assertion: and the bus must not be full (i.e. overflow handler)*/
+		if (full_bus(retval)) {
+			retval = NULL;
+		} else {
+			pass->status = new_status;
+			pthread_cond_broadcast(&(pass->cond_pass_status));
 		}
+		
 	} else {
 		retval = NULL;
 	}
